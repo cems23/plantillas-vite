@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Save, X, Plus } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { useAuth } from '../lib/AuthContext'
-import { extractVariables } from '../lib/utils'
-import type { Template, Category } from '../types'
+import { useAuth } from '../../lib/AuthContext'
+import { extractVariables } from '../../lib/utils'
+import type { Template, Category } from '../../types'
 import toast from 'react-hot-toast'
 
 interface Props {
