@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PlusCircle, FileText, Search, X, Tag, Zap, Copy, Check, Eye, Pencil, EyeOff, Loader2, Pin, PinOff, Palette } from 'lucide-react'
+import { PlusCircle, FileText, Search, X, Tag, Zap, Copy, Check, Eye, Pencil, EyeOff, Loader2, Pin, PinOff, Palette, Trash2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useApp } from '../lib/AppContext'
@@ -27,14 +27,22 @@ const TAG_COLORS = [
   { label: 'Indigo', dot: 'bg-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/50', text: 'text-indigo-700 dark:text-indigo-300' },
 ]
 
+// User-local template override stored in localStorage
+// Structure: { [templateId]: { hidden: bool, localEdit: {...fields} | null, localDelete: bool } }
+function getUserData(userId: string) {
+  try { return JSON.parse(localStorage.getItem('userdata_' + userId) || '{}') } catch { return {} }
+}
+function saveUserData(userId: string, data: any) {
+  localStorage.setItem('userdata_' + userId, JSON.stringify(data))
+}
+
 export function Home() {
   const { profile } = useAuth()
   const { pinnedIds, togglePin, isPinned } = useApp()
   const navigate = useNavigate()
-  const canEdit = profile?.role === 'admin' || profile?.role === 'editor'
 
   const [templates, setTemplates] = useState<Template[]>([])
-  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set())
+  const [userData, setUserData] = useState<Record<string, any>>({})
   const [tagColors, setTagColors] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -45,31 +53,21 @@ export function Home() {
     async function load() {
       const { data: t } = await supabase
         .from('templates')
-        .select('id,title,content,language,tags,shortcut,variables,use_count,category_id,is_active,updated_at,category:categories(id,name)')
+        .select('id,title,content,language,tags,shortcut,variables,use_count,category_id,is_active,updated_at,created_by,category:categories(id,name)')
         .eq('is_active', true)
         .order('updated_at', { ascending: false })
       setTemplates(t || [])
-
-      const hidden = localStorage.getItem('hidden_' + profile?.id)
-      if (hidden) setHiddenIds(new Set(JSON.parse(hidden)))
-
+      setUserData(getUserData(profile?.id || ''))
       const colors = localStorage.getItem('tagcolors_' + profile?.id)
       if (colors) setTagColors(JSON.parse(colors))
-
       setLoading(false)
     }
     load()
   }, [profile?.id])
 
-  const hideTemplate = useCallback((id: string) => {
-    setHiddenIds(prev => {
-      const next = new Set(prev)
-      next.add(id)
-      localStorage.setItem('hidden_' + profile?.id, JSON.stringify(Array.from(next)))
-      return next
-    })
-    toast.success('Template hidden')
-  }, [profile?.id])
+  function refreshUserData() {
+    setUserData(getUserData(profile?.id || ''))
+  }
 
   const handleSetTagColor = useCallback((tag: string, colorIdx: number) => {
     setTagColors(prev => {
@@ -79,31 +77,95 @@ export function Home() {
     })
   }, [profile?.id])
 
+  // Hide a template for this user only
+  const hideTemplate = useCallback((id: string) => {
+    const data = getUserData(profile?.id || '')
+    data[id] = { ...(data[id] || {}), hidden: true }
+    saveUserData(profile?.id || '', data)
+    refreshUserData()
+    toast.success('Template hidden')
+  }, [profile?.id])
+
+  // Delete a template for this user only (marks as deleted in their local data)
+  const deleteTemplate = useCallback((id: string) => {
+    const data = getUserData(profile?.id || '')
+    data[id] = { ...(data[id] || {}), deleted: true }
+    saveUserData(profile?.id || '', data)
+    refreshUserData()
+    toast.success('Template deleted from your view')
+  }, [profile?.id])
+
   const unhideAll = () => {
-    setHiddenIds(new Set())
-    localStorage.removeItem('hidden_' + profile?.id)
+    const data = getUserData(profile?.id || '')
+    Object.keys(data).forEach(id => { if (data[id]) { delete data[id].hidden; delete data[id].deleted } })
+    saveUserData(profile?.id || '', data)
+    refreshUserData()
     toast.success('All templates restored')
   }
 
+  // Merge templates with user local edits
+  const mergedTemplates = useMemo(() => {
+    return templates.map(t => {
+      const local = userData[t.id]
+      if (!local?.localEdit) return t
+      return { ...t, ...local.localEdit }
+    })
+  }, [templates, userData])
+
+  // Add user-created templates (stored locally)
+  const localTemplates = useMemo(() => {
+    return Object.entries(userData)
+      .filter(([id, d]: any) => d?.isLocal && !d?.deleted)
+      .map(([id, d]: any) => ({ ...d.template, id }))
+  }, [userData])
+
+  const allTemplates = useMemo(() => [...localTemplates, ...mergedTemplates], [localTemplates, mergedTemplates])
+
+  const hiddenCount = useMemo(() => Object.values(userData).filter((d: any) => d?.hidden || d?.deleted).length, [userData])
+
   const allTags = useMemo(() => {
     const set = new Set<string>()
-    templates.forEach(t => t.tags?.forEach(tag => set.add(tag)))
+    allTemplates.forEach(t => t.tags?.forEach((tag: string) => set.add(tag)))
     return Array.from(set).sort()
-  }, [templates])
+  }, [allTemplates])
 
   const filtered = useMemo(() => {
-    const visible = templates.filter(t => {
-      if (hiddenIds.has(t.id)) return false
+    const visible = allTemplates.filter(t => {
+      const local = userData[t.id]
+      if (local?.hidden || local?.deleted) return false
       if (language !== 'ALL' && t.language !== language) return false
       if (selectedTags.length > 0 && !selectedTags.every(tag => t.tags?.includes(tag))) return false
       if (search) {
         const q = search.toLowerCase()
-        if (!t.title.toLowerCase().includes(q) && !t.content.toLowerCase().includes(q) && !t.shortcut?.toLowerCase().includes(q) && !t.tags?.some(tag => tag.toLowerCase().includes(q))) return false
+        if (!t.title.toLowerCase().includes(q) && !t.content.toLowerCase().includes(q) && !t.shortcut?.toLowerCase().includes(q) && !t.tags?.some((tag: string) => tag.toLowerCase().includes(q))) return false
       }
       return true
     })
     return [...visible.filter(t => isPinned(t.id)), ...visible.filter(t => !isPinned(t.id))]
-  }, [templates, hiddenIds, pinnedIds, search, language, selectedTags])
+  }, [allTemplates, userData, pinnedIds, search, language, selectedTags])
+
+  // Save a local edit for a template
+  function saveLocalEdit(id: string, fields: Partial<Template>) {
+    const data = getUserData(profile?.id || '')
+    const isLocal = data[id]?.isLocal
+    if (isLocal) {
+      data[id].template = { ...data[id].template, ...fields }
+    } else {
+      data[id] = { ...(data[id] || {}), localEdit: { ...(data[id]?.localEdit || {}), ...fields } }
+    }
+    saveUserData(profile?.id || '', data)
+    refreshUserData()
+  }
+
+  // Create a new local template
+  function createLocalTemplate(template: Omit<Template, 'id'>) {
+    const id = 'local_' + Date.now()
+    const data = getUserData(profile?.id || '')
+    data[id] = { isLocal: true, template: { ...template, id, is_active: true, use_count: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), created_by: profile?.id } }
+    saveUserData(profile?.id || '', data)
+    refreshUserData()
+    return id
+  }
 
   if (loading) return (
     <div className="flex items-center justify-center py-20">
@@ -117,15 +179,13 @@ export function Home() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Templates</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
-            {filtered.length} of {templates.length - hiddenIds.size} templates
-            {hiddenIds.size > 0 && <button onClick={unhideAll} className="ml-2 text-indigo-500 hover:text-indigo-700 underline">restore {hiddenIds.size} hidden</button>}
+            {filtered.length} templates
+            {hiddenCount > 0 && <button onClick={unhideAll} className="ml-2 text-indigo-500 hover:text-indigo-700 underline">restore {hiddenCount} hidden</button>}
           </p>
         </div>
-        {canEdit && (
-          <button onClick={() => navigate('/templates/new')} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
-            <PlusCircle className="w-4 h-4" />New template
-          </button>
-        )}
+        <button onClick={() => navigate('/templates/new')} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+          <PlusCircle className="w-4 h-4" />New template
+        </button>
       </div>
 
       <div className="relative mb-3">
@@ -161,7 +221,7 @@ export function Home() {
         <div className="text-center py-20">
           <FileText className="w-12 h-12 text-slate-200 dark:text-slate-700 mx-auto mb-4" />
           <p className="text-slate-500 dark:text-slate-400">No templates found</p>
-          {canEdit && !search && <button onClick={() => navigate('/templates/new')} className="text-sm text-indigo-600 hover:text-indigo-800 mt-2">Create the first one</button>}
+          <button onClick={() => navigate('/templates/new')} className="text-sm text-indigo-600 hover:text-indigo-800 mt-2">Create the first one</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -169,12 +229,13 @@ export function Home() {
             <TemplateCard
               key={template.id}
               template={template}
-              canEdit={canEdit}
               pinned={isPinned(template.id)}
               tagColors={tagColors}
+              isLocal={!!userData[template.id]?.isLocal}
               onEdit={() => navigate('/templates/' + template.id + '/edit')}
               onView={() => navigate('/templates/' + template.id)}
               onHide={() => hideTemplate(template.id)}
+              onDelete={() => deleteTemplate(template.id)}
               onTogglePin={() => togglePin(template.id)}
               onSetTagColor={handleSetTagColor}
             />
@@ -185,10 +246,10 @@ export function Home() {
   )
 }
 
-const TemplateCard = memo(function TemplateCard({ template, canEdit, pinned, tagColors, onEdit, onView, onHide, onTogglePin, onSetTagColor }: {
-  template: Template; canEdit?: boolean; pinned: boolean; tagColors: Record<string, number>
-  onEdit: () => void; onView: () => void; onHide: () => void; onTogglePin: () => void
-  onSetTagColor: (tag: string, idx: number) => void
+const TemplateCard = memo(function TemplateCard({ template, pinned, tagColors, isLocal, onEdit, onView, onHide, onDelete, onTogglePin, onSetTagColor }: {
+  template: any; pinned: boolean; tagColors: Record<string, number>; isLocal: boolean
+  onEdit: () => void; onView: () => void; onHide: () => void; onDelete: () => void
+  onTogglePin: () => void; onSetTagColor: (tag: string, idx: number) => void
 }) {
   const [copied, setCopied] = useState(false)
   const [showModal, setShowModal] = useState(false)
@@ -196,6 +257,7 @@ const TemplateCard = memo(function TemplateCard({ template, canEdit, pinned, tag
   const [translations, setTranslations] = useState<Record<string, string>>({})
   const [activeLang, setActiveLang] = useState<string>(template.language)
   const [colorPickerTag, setColorPickerTag] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   async function handleCopy(e: React.MouseEvent) {
     e.stopPropagation()
@@ -212,7 +274,9 @@ const TemplateCard = memo(function TemplateCard({ template, canEdit, pinned, tag
     setCopied(true)
     toast.success('Copied!')
     setTimeout(() => setCopied(false), 2000)
-    supabase.from('templates').update({ use_count: (template.use_count || 0) + 1 }).eq('id', template.id).then()
+    if (!String(template.id).startsWith('local_')) {
+      supabase.from('templates').update({ use_count: (template.use_count || 0) + 1 }).eq('id', template.id).then()
+    }
   }
 
   async function translate(e: React.MouseEvent, targetLang: string) {
@@ -251,27 +315,26 @@ const TemplateCard = memo(function TemplateCard({ template, canEdit, pinned, tag
   return (
     <>
       <div
-        className={"bg-white dark:bg-slate-800 rounded-xl border p-4 flex flex-col gap-3 hover:shadow-md transition-all fade-in cursor-pointer group " + (pinned ? 'border-indigo-300 dark:border-indigo-600 ring-1 ring-indigo-100 dark:ring-indigo-900' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-700')}
+        className={"bg-white dark:bg-slate-800 rounded-xl border p-4 flex flex-col gap-3 hover:shadow-md transition-all fade-in cursor-pointer " + (pinned ? 'border-indigo-300 dark:border-indigo-600 ring-1 ring-indigo-100 dark:ring-indigo-900' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-200')}
         onClick={onView}
       >
-        {/* Header */}
         <div className="flex items-start gap-2" onClick={e => e.stopPropagation()}>
           <div className="flex-1 min-w-0 cursor-pointer" onClick={onView}>
             <div className="flex items-center gap-1.5">
               {pinned && <Pin className="w-3 h-3 text-indigo-500 flex-shrink-0" />}
-              <h3 className="font-semibold text-slate-900 dark:text-white truncate hover:text-indigo-600 dark:hover:text-indigo-400">{template.title}</h3>
+              {isLocal && <span className="text-xs bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">mine</span>}
+              <h3 className="font-semibold text-slate-900 dark:text-white truncate hover:text-indigo-600">{template.title}</h3>
             </div>
             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-              {template.category && <span className="text-xs text-slate-400">{(template.category as any).name}</span>}
+              {template.category && <span className="text-xs text-slate-400">{template.category?.name || template.category}</span>}
               {template.shortcut && <span className="text-xs font-mono bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded flex items-center gap-0.5"><Zap className="w-2.5 h-2.5" />{template.shortcut}</span>}
             </div>
           </div>
-          <button onClick={handleCopy} className={"flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0 " + (copied ? 'bg-green-100 text-green-700' : 'bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60')}>
+          <button onClick={handleCopy} className={"flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0 " + (copied ? 'bg-green-100 text-green-700' : 'bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100')}>
             {copied ? <><Check className="w-3.5 h-3.5" />Copied</> : <><Copy className="w-3.5 h-3.5" />Copy</>}
           </button>
         </div>
 
-        {/* Language flags */}
         <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
           {LANGS.map(l => (
             <button key={l.code} onClick={e => translate(e, l.code)} title={l.label}
@@ -282,41 +345,34 @@ const TemplateCard = memo(function TemplateCard({ template, canEdit, pinned, tag
           {translating && <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin ml-1" />}
         </div>
 
-        {/* Content preview */}
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line flex-1 line-clamp-4">{preview}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line flex-1">{preview}</p>
 
-        {/* Variables */}
         {template.variables?.length > 0 && activeLang === template.language && (
           <div className="flex flex-wrap gap-1" onClick={e => e.stopPropagation()}>
-            {template.variables.map(v => <span key={v} className="text-xs bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800 px-1.5 py-0.5 rounded font-mono">{'{' + v + '}'}</span>)}
+            {template.variables.map((v: string) => <span key={v} className="text-xs bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800 px-1.5 py-0.5 rounded font-mono">{'{' + v + '}'}</span>)}
           </div>
         )}
 
-        {/* Tags with color picker */}
         {template.tags?.length > 0 && (
           <div className="flex items-center gap-1 flex-wrap" onClick={e => e.stopPropagation()}>
             <Tag className="w-3 h-3 text-slate-300 flex-shrink-0" />
-            {template.tags.slice(0, 5).map(tag => {
+            {template.tags.slice(0, 5).map((tag: string) => {
               const colorIdx = tagColors[tag] ?? 0
               const color = TAG_COLORS[colorIdx]
               return (
                 <div key={tag} className="relative">
-                  <span
-                    onClick={e => handleTagClick(e, tag)}
-                    title="Click to change color"
-                    className={"text-xs px-1.5 py-0.5 rounded cursor-pointer transition-all hover:opacity-80 select-none " + color.bg + ' ' + color.text}
-                  >
+                  <span onClick={e => handleTagClick(e, tag)} title="Click to change color"
+                    className={"text-xs px-1.5 py-0.5 rounded cursor-pointer transition-all hover:opacity-80 select-none " + color.bg + ' ' + color.text}>
                     {tag}
                   </span>
                   {colorPickerTag === tag && (
                     <div className="absolute bottom-full left-0 mb-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-600 p-2 z-50">
-                      <p className="text-xs text-slate-400 mb-1.5 flex items-center gap-1"><Palette className="w-3 h-3" />Tag color</p>
+                      <p className="text-xs text-slate-400 mb-1.5 flex items-center gap-1"><Palette className="w-3 h-3" />Color</p>
                       <div className="flex gap-1.5">
                         {TAG_COLORS.map((c, i) => (
                           <button key={i} onClick={e => handleColorPick(e, tag, i)}
                             className={"w-5 h-5 rounded-full transition-transform hover:scale-110 " + c.dot + (colorIdx === i ? ' ring-2 ring-offset-1 ring-slate-400' : '')}
-                            title={c.label}
-                          />
+                            title={c.label} />
                         ))}
                       </div>
                     </div>
@@ -328,15 +384,20 @@ const TemplateCard = memo(function TemplateCard({ template, canEdit, pinned, tag
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-700" onClick={e => e.stopPropagation()}>
           <button onClick={onView} className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-600 transition-colors"><Eye className="w-3 h-3" />View</button>
-          {canEdit && <button onClick={onEdit} className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-600 transition-colors"><Pencil className="w-3 h-3" />Edit</button>}
+          <button onClick={onEdit} className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-600 transition-colors"><Pencil className="w-3 h-3" />Edit</button>
           <button onClick={e => { e.stopPropagation(); onTogglePin() }} className={"flex items-center gap-1 text-xs transition-colors " + (pinned ? 'text-indigo-500 hover:text-indigo-700' : 'text-slate-400 hover:text-indigo-500')}>
             {pinned ? <><PinOff className="w-3 h-3" />Unpin</> : <><Pin className="w-3 h-3" />Pin</>}
           </button>
-          <button onClick={e => { e.stopPropagation(); onHide() }} className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors"><EyeOff className="w-3 h-3" />Hide</button>
-          <span className="text-xs text-slate-300 dark:text-slate-600 ml-auto">{template.use_count || 0} uses</span>
+          <button onClick={e => { e.stopPropagation(); onHide() }} className="flex items-center gap-1 text-xs text-slate-400 hover:text-orange-500 transition-colors"><EyeOff className="w-3 h-3" />Hide</button>
+          {confirmDelete
+            ? <span className="flex items-center gap-1 ml-auto">
+                <button onClick={e => { e.stopPropagation(); onDelete() }} className="text-xs text-red-600 font-semibold hover:text-red-800">Confirm</button>
+                <button onClick={e => { e.stopPropagation(); setConfirmDelete(false) }} className="text-xs text-slate-400 ml-1">Cancel</button>
+              </span>
+            : <button onClick={e => { e.stopPropagation(); setConfirmDelete(true) }} className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors ml-auto"><Trash2 className="w-3 h-3" />Delete</button>
+          }
         </div>
       </div>
 
@@ -347,8 +408,8 @@ const TemplateCard = memo(function TemplateCard({ template, canEdit, pinned, tag
   )
 })
 
-function VariableModal({ template, onCopy, onClose }: { template: Template; onCopy: (c: string) => Promise<void>; onClose: () => void }) {
-  const [values, setValues] = useState<Record<string, string>>(Object.fromEntries(template.variables.map(v => [v, ''])))
+function VariableModal({ template, onCopy, onClose }: { template: any; onCopy: (c: string) => Promise<void>; onClose: () => void }) {
+  const [values, setValues] = useState<Record<string, string>>(Object.fromEntries((template.variables || []).map((v: string) => [v, ''])))
   const preview = fillVariables(template.content, values)
 
   return (
@@ -358,7 +419,7 @@ function VariableModal({ template, onCopy, onClose }: { template: Template; onCo
           <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Customize template</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">Fill in the fields to personalize the message</p>
           <div className="space-y-3 mb-5">
-            {template.variables.map(v => (
+            {(template.variables || []).map((v: string) => (
               <div key={v}>
                 <label className="block text-xs font-mono text-yellow-700 dark:text-yellow-400 mb-1">{'{' + v + '}'}</label>
                 <input type="text" value={values[v]} onChange={e => setValues(p => ({ ...p, [v]: e.target.value }))} placeholder={"Enter " + v + "..."} className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" autoFocus />
@@ -370,7 +431,7 @@ function VariableModal({ template, onCopy, onClose }: { template: Template; onCo
             <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{preview}</p>
           </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">Cancel</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800">Cancel</button>
             <button onClick={() => onCopy(preview)} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700">
               <Copy className="w-4 h-4" />Copy customized
             </button>
