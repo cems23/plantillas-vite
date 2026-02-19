@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Users, Clock, Upload, FileText, TrendingUp } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
@@ -19,24 +19,23 @@ export function Admin() {
   }, [])
 
   const cards = [
-    { label: 'Plantillas activas', value: stats.templates, icon: FileText },
-    { label: 'Usuarios', value: stats.users, icon: Users },
-    { label: 'Copias realizadas', value: stats.copies, icon: TrendingUp },
+    { label: 'Active templates', value: stats.templates, icon: FileText },
+    { label: 'Users', value: stats.users, icon: Users },
+    { label: 'Total copies', value: stats.copies, icon: TrendingUp },
   ]
 
   const links = [
-    { to: '/admin/users', label: 'Gestionar usuarios', desc: 'Cambiar roles y permisos', icon: Users },
-    { to: '/admin/audit', label: 'Historial de auditoría', desc: 'Ver todos los cambios', icon: Clock },
-    { to: '/admin/import', label: 'Importar desde Keep', desc: 'Importar plantillas masivamente', icon: Upload },
+    { to: '/admin/users', label: 'Manage users', desc: 'Change roles and permissions', icon: Users },
+    { to: '/admin/audit', label: 'Audit log', desc: 'View all changes and actions', icon: Clock },
+    { to: '/admin/import', label: 'Import from Keep', desc: 'Bulk import templates', icon: Upload },
   ]
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Panel de administración</h1>
-        <p className="text-slate-500 text-sm mt-1">Gestiona usuarios y configuración</p>
+        <h1 className="text-2xl font-bold text-slate-900">Admin panel</h1>
+        <p className="text-slate-500 text-sm mt-1">Manage users and configuration</p>
       </div>
-
       <div className="grid grid-cols-3 gap-4 mb-8">
         {cards.map(card => (
           <div key={card.label} className="bg-white rounded-xl border border-slate-200 p-5">
@@ -46,7 +45,6 @@ export function Admin() {
           </div>
         ))}
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {links.map(link => (
           <Link key={link.to} to={link.to} className="bg-white rounded-xl border border-slate-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-all flex items-start gap-4">

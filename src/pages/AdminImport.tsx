@@ -68,14 +68,14 @@ export function AdminImport() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Importar desde Google Keep</h1>
-        <p className="text-slate-500 text-sm mt-1">Importa tus plantillas existentes de forma masiva</p>
+        <h1 className="text-2xl font-bold text-slate-900">Import from Google Keep</h1>
+        <p className="text-slate-500 text-sm mt-1">Bulk import your existing templates</p>
       </div>
 
       {step === 'upload' && (
         <div>
           <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-6 text-sm text-indigo-800">
-            <p className="font-semibold mb-2">📥 Cómo exportar de Google Keep:</p>
+            <p className="font-semibold mb-2">📥 How to export from Google Keep:</p>
             <ol className="list-decimal list-inside space-y-1 text-indigo-700">
               <li>Ve a <strong>takeout.google.com</strong></li>
               <li>Haz clic en <strong>"Deseleccionar todo"</strong></li>
@@ -93,8 +93,8 @@ export function AdminImport() {
             className={`border-2 border-dashed rounded-2xl p-14 text-center cursor-pointer transition-colors ${isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-slate-300 hover:border-indigo-300 hover:bg-slate-50'}`}
           >
             <Upload className={`w-14 h-14 mx-auto mb-4 ${isDragging ? 'text-indigo-500' : 'text-slate-300'}`} />
-            <p className="text-slate-700 font-semibold text-lg mb-1">Arrastra los archivos .json aquí</p>
-            <p className="text-slate-400 text-sm">o haz clic para seleccionarlos</p>
+            <p className="text-slate-700 font-semibold text-lg mb-1">Drag your .json files here</p>
+            <p className="text-slate-400 text-sm">or click to select them</p>
             <input id="keep-input" type="file" multiple accept=".json" className="hidden" onChange={e => e.target.files && processFiles(e.target.files)} />
           </div>
         </div>
@@ -103,17 +103,17 @@ export function AdminImport() {
       {step === 'preview' && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-slate-900">{parsed.length} notas encontradas</h2>
+            <h2 className="text-xl font-bold text-slate-900">{parsed.length} notes found</h2>
             <div className="flex gap-3">
-              <button onClick={() => setSelected(new Set(parsed.map((_, i) => i)))} className="text-sm text-indigo-600">Seleccionar todo</button>
-              <button onClick={() => setSelected(new Set())} className="text-sm text-slate-500">Ninguna</button>
+              <button onClick={() => setSelected(new Set(parsed.map((_, i) => i)))} className="text-sm text-indigo-600">Select all</button>
+              <button onClick={() => setSelected(new Set())} className="text-sm text-slate-500">None</button>
             </div>
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-slate-700 mb-1">Categoría (opcional)</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Category (optional)</label>
             <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option value="">Sin categoría</option>
+              <option value="">No category</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
@@ -134,9 +134,9 @@ export function AdminImport() {
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-500"><strong>{selected.size}</strong> seleccionadas</span>
+            <span className="text-sm text-slate-500"><strong>{selected.size}</strong> selected</span>
             <div className="flex gap-2">
-              <button onClick={() => { setStep('upload'); setParsed([]) }} className="px-4 py-2 text-sm text-slate-600">Volver</button>
+              <button onClick={() => { setStep('upload'); setParsed([]) }} className="px-4 py-2 text-sm text-slate-600">Back</button>
               <button onClick={handleImport} disabled={selected.size === 0} className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50">
                 Importar {selected.size} notas<ArrowRight className="w-4 h-4" />
               </button>
@@ -148,27 +148,27 @@ export function AdminImport() {
       {step === 'importing' && (
         <div className="text-center py-16">
           <Loader2 className="w-16 h-16 text-indigo-600 animate-spin mx-auto mb-5" />
-          <h2 className="text-xl font-bold text-slate-900">Importando plantillas...</h2>
+          <h2 className="text-xl font-bold text-slate-900">Importing templates...</h2>
         </div>
       )}
 
       {step === 'done' && (
         <div className="text-center py-10">
           <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-5" />
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">¡Importación completada!</h2>
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">Import completed!</h2>
           <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto mb-8">
             <div className="bg-green-50 rounded-xl p-4 border border-green-100">
               <p className="text-3xl font-bold text-green-700">{result.imported}</p>
-              <p className="text-sm text-green-600 mt-1">Importadas</p>
+              <p className="text-sm text-green-600 mt-1">Imported</p>
             </div>
             <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
               <p className="text-3xl font-bold text-slate-400">{result.skipped}</p>
-              <p className="text-sm text-slate-400 mt-1">Saltadas</p>
+              <p className="text-sm text-slate-400 mt-1">Skipped</p>
             </div>
           </div>
           <div className="flex items-center justify-center gap-3">
-            <button onClick={() => { setStep('upload'); setParsed([]); setResult({ imported: 0, skipped: 0 }) }} className="px-5 py-2.5 text-sm text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50">Importar más</button>
-            <a href="/" className="px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700">Ver plantillas →</a>
+            <button onClick={() => { setStep('upload'); setParsed([]); setResult({ imported: 0, skipped: 0 }) }} className="px-5 py-2.5 text-sm text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50">Import more</button>
+            <a href="/" className="px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700">View templates →</a>
           </div>
         </div>
       )}

@@ -5,9 +5,12 @@
 * { box-sizing: border-box; }
 body { font-family: 'Inter', system-ui, sans-serif; }
 
+.dark body { background-color: #0f172a; }
+
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+.dark ::-webkit-scrollbar-thumb { background: #475569; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }

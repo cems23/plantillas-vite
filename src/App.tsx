@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useAuth } from './lib/AuthContext'
+import { AppProvider } from './lib/AppContext'
 import { Login } from './pages/Login'
 import { Layout } from './components/layout/Layout'
 import { Home } from './pages/Home'
@@ -16,7 +17,7 @@ import { Settings } from './pages/Settings'
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-900">
       <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
     </div>
   )
@@ -30,9 +31,10 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-export default function App() {
+function AppWithProvider() {
+  const { profile } = useAuth()
   return (
-    <>
+    <AppProvider userId={profile?.id}>
       <Toaster position="bottom-right" toastOptions={{
         style: { background: '#1e293b', color: '#f1f5f9', borderRadius: '12px', fontSize: '14px' },
       }} />
@@ -50,6 +52,10 @@ export default function App() {
           <Route path="admin/import" element={<AdminImport />} />
         </Route>
       </Routes>
-    </>
+    </AppProvider>
   )
+}
+
+export default function App() {
+  return <AppWithProvider />
 }
