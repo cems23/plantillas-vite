@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useApp } from '../lib/AppContext'
 import { fillVariables } from '../lib/utils'
-import type { Template, Category } from '../types'
+import type { Template } from '../types'
 import toast from 'react-hot-toast'
 
 const LANGS = [
@@ -33,23 +33,17 @@ export function Home() {
   const canEdit = profile?.role === 'admin' || profile?.role === 'editor'
 
   const [templates, setTemplates] = useState<Template[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set())
   const [tagColors, setTagColors] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [language, setLanguage] = useState<string>('ALL')
-  const [categoryId, setCategoryId] = useState('ALL')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
 
   useEffect(() => {
     async function load() {
-      const [{ data: t }, { data: c }] = await Promise.all([
-        supabase.from('templates').select('*, category:categories(*)').eq('is_active', true).order('updated_at', { ascending: false }),
-        supabase.from('categories').select('*').order('name'),
-      ])
+      const { data: t } = await supabase.from('templates').select('*, category:categories(*)').eq('is_active', true).order('updated_at', { ascending: false })
       setTemplates(t || [])
-      setCategories(c || [])
       const key = 'hidden_' + profile?.id
       const stored = localStorage.getItem(key)
       if (stored) setHiddenIds(new Set(JSON.parse(stored)))
@@ -95,13 +89,12 @@ export function Home() {
         if (!t.title.toLowerCase().includes(q) && !t.content.toLowerCase().includes(q) && !t.shortcut?.toLowerCase().includes(q) && !t.tags?.some(tag => tag.toLowerCase().includes(q))) return false
       }
       if (language !== 'ALL' && t.language !== language) return false
-      if (categoryId !== 'ALL' && t.category_id !== categoryId) return false
       if (selectedTags.length > 0 && !selectedTags.every(tag => t.tags?.includes(tag))) return false
       return true
     })
     // Pinned first
     return [...visible.filter(t => isPinned(t.id)), ...visible.filter(t => !isPinned(t.id))]
-  }, [templates, hiddenIds, pinnedIds, search, language, categoryId, selectedTags])
+  }, [templates, hiddenIds, pinnedIds, search, language, selectedTags])
 
   function toggleTag(tag: string) {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
@@ -141,10 +134,6 @@ export function Home() {
           <option value="ALL">All languages</option>
           {LANGS.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
         </select>
-        <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="text-sm border border-slate-200 dark:border-slate-600 rounded-lg px-2.5 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <option value="ALL">All categories</option>
-          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
         {allTags.slice(0, 10).map(tag => {
           const colorIdx = tagColors[tag]
           const color = colorIdx !== undefined ? TAG_COLORS[colorIdx] : null
@@ -154,8 +143,8 @@ export function Home() {
             </button>
           )
         })}
-        {(search || language !== 'ALL' || categoryId !== 'ALL' || selectedTags.length > 0) && (
-          <button onClick={() => { setSearch(''); setLanguage('ALL'); setCategoryId('ALL'); setSelectedTags([]) }} className="text-xs text-slate-400 hover:text-red-500 flex items-center gap-1 px-2">
+        {(search || language !== 'ALL' || selectedTags.length > 0) && (
+          <button onClick={() => { setSearch(''); setLanguage('ALL'); setSelectedTags([]) }} className="text-xs text-slate-400 hover:text-red-500 flex items-center gap-1 px-2">
             <X className="w-3 h-3" />Clear
           </button>
         )}
