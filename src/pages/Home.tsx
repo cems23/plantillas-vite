@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PlusCircle, FileText, Search, X, Tag, Zap, Copy, Check, Eye, Pencil, EyeOff, Loader2, Pin, PinOff } from 'lucide-react'
+import { PlusCircle, FileText, Search, X, Tag, Zap, Copy, Check, Eye, Pencil, EyeOff, Loader2, Pin, PinOff, Palette } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { useApp } from '../lib/AppContext'
@@ -17,13 +17,14 @@ const LANGS = [
 ]
 
 const TAG_COLORS = [
-  { label: 'Red', bg: 'bg-red-100 dark:bg-red-900/40', text: 'text-red-700 dark:text-red-300', ring: 'ring-red-300' },
-  { label: 'Orange', bg: 'bg-orange-100 dark:bg-orange-900/40', text: 'text-orange-700 dark:text-orange-300', ring: 'ring-orange-300' },
-  { label: 'Yellow', bg: 'bg-yellow-100 dark:bg-yellow-900/40', text: 'text-yellow-700 dark:text-yellow-300', ring: 'ring-yellow-300' },
-  { label: 'Green', bg: 'bg-green-100 dark:bg-green-900/40', text: 'text-green-700 dark:text-green-300', ring: 'ring-green-300' },
-  { label: 'Blue', bg: 'bg-blue-100 dark:bg-blue-900/40', text: 'text-blue-700 dark:text-blue-300', ring: 'ring-blue-300' },
-  { label: 'Purple', bg: 'bg-purple-100 dark:bg-purple-900/40', text: 'text-purple-700 dark:text-purple-300', ring: 'ring-purple-300' },
-  { label: 'Indigo', bg: 'bg-indigo-100 dark:bg-indigo-900/40', text: 'text-indigo-700 dark:text-indigo-300', ring: 'ring-indigo-300' },
+  { label: 'Gray',   dot: 'bg-slate-400',  bg: 'bg-slate-100 dark:bg-slate-700',   text: 'text-slate-600 dark:text-slate-300' },
+  { label: 'Red',    dot: 'bg-red-400',    bg: 'bg-red-100 dark:bg-red-900/50',    text: 'text-red-700 dark:text-red-300' },
+  { label: 'Orange', dot: 'bg-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/50', text: 'text-orange-700 dark:text-orange-300' },
+  { label: 'Yellow', dot: 'bg-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-900/50', text: 'text-yellow-700 dark:text-yellow-300' },
+  { label: 'Green',  dot: 'bg-green-400',  bg: 'bg-green-100 dark:bg-green-900/50',  text: 'text-green-700 dark:text-green-300' },
+  { label: 'Blue',   dot: 'bg-blue-400',   bg: 'bg-blue-100 dark:bg-blue-900/50',   text: 'text-blue-700 dark:text-blue-300' },
+  { label: 'Purple', dot: 'bg-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/50', text: 'text-purple-700 dark:text-purple-300' },
+  { label: 'Indigo', dot: 'bg-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/50', text: 'text-indigo-700 dark:text-indigo-300' },
 ]
 
 export function Home() {
@@ -42,37 +43,46 @@ export function Home() {
 
   useEffect(() => {
     async function load() {
-      const { data: t } = await supabase.from('templates').select('*, category:categories(*)').eq('is_active', true).order('updated_at', { ascending: false })
+      const { data: t } = await supabase
+        .from('templates')
+        .select('id,title,content,language,tags,shortcut,variables,use_count,category_id,is_active,updated_at,category:categories(id,name)')
+        .eq('is_active', true)
+        .order('updated_at', { ascending: false })
       setTemplates(t || [])
-      const key = 'hidden_' + profile?.id
-      const stored = localStorage.getItem(key)
-      if (stored) setHiddenIds(new Set(JSON.parse(stored)))
-      const colorKey = 'tagcolors_' + profile?.id
-      const storedColors = localStorage.getItem(colorKey)
-      if (storedColors) setTagColors(JSON.parse(storedColors))
+
+      const hidden = localStorage.getItem('hidden_' + profile?.id)
+      if (hidden) setHiddenIds(new Set(JSON.parse(hidden)))
+
+      const colors = localStorage.getItem('tagcolors_' + profile?.id)
+      if (colors) setTagColors(JSON.parse(colors))
+
       setLoading(false)
     }
     load()
   }, [profile?.id])
 
-  function hideTemplate(id: string) {
-    const next = new Set(hiddenIds)
-    next.add(id)
-    setHiddenIds(next)
-    localStorage.setItem('hidden_' + profile?.id, JSON.stringify(Array.from(next)))
-    toast.success('Template hidden from your view')
-  }
+  const hideTemplate = useCallback((id: string) => {
+    setHiddenIds(prev => {
+      const next = new Set(prev)
+      next.add(id)
+      localStorage.setItem('hidden_' + profile?.id, JSON.stringify(Array.from(next)))
+      return next
+    })
+    toast.success('Template hidden')
+  }, [profile?.id])
 
-  function unhideAll() {
+  const handleSetTagColor = useCallback((tag: string, colorIdx: number) => {
+    setTagColors(prev => {
+      const next = { ...prev, [tag]: colorIdx }
+      localStorage.setItem('tagcolors_' + profile?.id, JSON.stringify(next))
+      return next
+    })
+  }, [profile?.id])
+
+  const unhideAll = () => {
     setHiddenIds(new Set())
     localStorage.removeItem('hidden_' + profile?.id)
     toast.success('All templates restored')
-  }
-
-  function setTagColor(tag: string, colorIdx: number) {
-    const next = { ...tagColors, [tag]: colorIdx }
-    setTagColors(next)
-    localStorage.setItem('tagcolors_' + profile?.id, JSON.stringify(next))
   }
 
   const allTags = useMemo(() => {
@@ -84,21 +94,16 @@ export function Home() {
   const filtered = useMemo(() => {
     const visible = templates.filter(t => {
       if (hiddenIds.has(t.id)) return false
+      if (language !== 'ALL' && t.language !== language) return false
+      if (selectedTags.length > 0 && !selectedTags.every(tag => t.tags?.includes(tag))) return false
       if (search) {
         const q = search.toLowerCase()
         if (!t.title.toLowerCase().includes(q) && !t.content.toLowerCase().includes(q) && !t.shortcut?.toLowerCase().includes(q) && !t.tags?.some(tag => tag.toLowerCase().includes(q))) return false
       }
-      if (language !== 'ALL' && t.language !== language) return false
-      if (selectedTags.length > 0 && !selectedTags.every(tag => t.tags?.includes(tag))) return false
       return true
     })
-    // Pinned first
     return [...visible.filter(t => isPinned(t.id)), ...visible.filter(t => !isPinned(t.id))]
   }, [templates, hiddenIds, pinnedIds, search, language, selectedTags])
-
-  function toggleTag(tag: string) {
-    setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
-  }
 
   if (loading) return (
     <div className="flex items-center justify-center py-20">
@@ -117,7 +122,7 @@ export function Home() {
           </p>
         </div>
         {canEdit && (
-          <button onClick={() => navigate('/templates/new')} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors">
+          <button onClick={() => navigate('/templates/new')} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
             <PlusCircle className="w-4 h-4" />New template
           </button>
         )}
@@ -125,7 +130,7 @@ export function Home() {
 
       <div className="relative mb-3">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by title, content, /shortcut or tag..." className="w-full pl-10 pr-9 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by title, content, /shortcut or tag..." className="w-full pl-10 pr-9 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
         {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>}
       </div>
 
@@ -134,11 +139,13 @@ export function Home() {
           <option value="ALL">All languages</option>
           {LANGS.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
         </select>
-        {allTags.slice(0, 10).map(tag => {
-          const colorIdx = tagColors[tag]
-          const color = colorIdx !== undefined ? TAG_COLORS[colorIdx] : null
+        {allTags.slice(0, 12).map(tag => {
+          const colorIdx = tagColors[tag] ?? 0
+          const color = TAG_COLORS[colorIdx]
+          const isSelected = selectedTags.includes(tag)
           return (
-            <button key={tag} onClick={() => toggleTag(tag)} className={"text-xs px-2.5 py-1 rounded-full border transition-colors " + (selectedTags.includes(tag) ? 'bg-indigo-600 text-white border-indigo-600' : color ? color.bg + ' ' + color.text + ' border-transparent' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-indigo-300')}>
+            <button key={tag} onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
+              className={"text-xs px-2.5 py-1 rounded-full border transition-colors " + (isSelected ? 'bg-indigo-600 text-white border-indigo-600' : color.bg + ' ' + color.text + ' border-transparent hover:opacity-80')}>
               {tag}
             </button>
           )
@@ -169,7 +176,7 @@ export function Home() {
               onView={() => navigate('/templates/' + template.id)}
               onHide={() => hideTemplate(template.id)}
               onTogglePin={() => togglePin(template.id)}
-              onSetTagColor={setTagColor}
+              onSetTagColor={handleSetTagColor}
             />
           ))}
         </div>
@@ -178,9 +185,10 @@ export function Home() {
   )
 }
 
-function TemplateCard({ template, canEdit, pinned, tagColors, onEdit, onView, onHide, onTogglePin, onSetTagColor }: {
+const TemplateCard = memo(function TemplateCard({ template, canEdit, pinned, tagColors, onEdit, onView, onHide, onTogglePin, onSetTagColor }: {
   template: Template; canEdit?: boolean; pinned: boolean; tagColors: Record<string, number>
-  onEdit: () => void; onView: () => void; onHide: () => void; onTogglePin: () => void; onSetTagColor: (tag: string, idx: number) => void
+  onEdit: () => void; onView: () => void; onHide: () => void; onTogglePin: () => void
+  onSetTagColor: (tag: string, idx: number) => void
 }) {
   const [copied, setCopied] = useState(false)
   const [showModal, setShowModal] = useState(false)
@@ -202,8 +210,8 @@ function TemplateCard({ template, canEdit, pinned, tagColors, onEdit, onView, on
       el.value = content; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el)
     }
     setCopied(true)
-    toast.success('Copied to clipboard!')
-    setTimeout(() => setCopied(false), 2500)
+    toast.success('Copied!')
+    setTimeout(() => setCopied(false), 2000)
     supabase.from('templates').update({ use_count: (template.use_count || 0) + 1 }).eq('id', template.id).then()
   }
 
@@ -226,66 +234,91 @@ function TemplateCard({ template, canEdit, pinned, tagColors, onEdit, onView, on
     setTranslating(false)
   }
 
+  function handleTagClick(e: React.MouseEvent, tag: string) {
+    e.stopPropagation()
+    setColorPickerTag(prev => prev === tag ? null : tag)
+  }
+
+  function handleColorPick(e: React.MouseEvent, tag: string, idx: number) {
+    e.stopPropagation()
+    onSetTagColor(tag, idx)
+    setColorPickerTag(null)
+  }
+
   const displayContent = translations[activeLang] || template.content
   const preview = displayContent.length > 150 ? displayContent.substring(0, 150) + '...' : displayContent
 
   return (
     <>
       <div
-        className={"bg-white dark:bg-slate-800 rounded-xl border p-4 flex flex-col gap-3 hover:shadow-md transition-all fade-in cursor-pointer " + (pinned ? 'border-indigo-300 dark:border-indigo-500 ring-1 ring-indigo-200 dark:ring-indigo-700' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-200')}
+        className={"bg-white dark:bg-slate-800 rounded-xl border p-4 flex flex-col gap-3 hover:shadow-md transition-all fade-in cursor-pointer group " + (pinned ? 'border-indigo-300 dark:border-indigo-600 ring-1 ring-indigo-100 dark:ring-indigo-900' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-700')}
         onClick={onView}
       >
+        {/* Header */}
         <div className="flex items-start gap-2" onClick={e => e.stopPropagation()}>
           <div className="flex-1 min-w-0 cursor-pointer" onClick={onView}>
             <div className="flex items-center gap-1.5">
               {pinned && <Pin className="w-3 h-3 text-indigo-500 flex-shrink-0" />}
-              <h3 className="font-semibold text-slate-900 dark:text-white truncate hover:text-indigo-600">{template.title}</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white truncate hover:text-indigo-600 dark:hover:text-indigo-400">{template.title}</h3>
             </div>
             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-              {template.category && <span className="text-xs text-slate-400 dark:text-slate-500">{template.category.name}</span>}
+              {template.category && <span className="text-xs text-slate-400">{(template.category as any).name}</span>}
               {template.shortcut && <span className="text-xs font-mono bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded flex items-center gap-0.5"><Zap className="w-2.5 h-2.5" />{template.shortcut}</span>}
             </div>
           </div>
-          <button onClick={handleCopy} className={"flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0 " + (copied ? 'bg-green-100 text-green-700' : 'bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100')}>
+          <button onClick={handleCopy} className={"flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0 " + (copied ? 'bg-green-100 text-green-700' : 'bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60')}>
             {copied ? <><Check className="w-3.5 h-3.5" />Copied</> : <><Copy className="w-3.5 h-3.5" />Copy</>}
           </button>
         </div>
 
+        {/* Language flags */}
         <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
           {LANGS.map(l => (
-            <button key={l.code} onClick={e => translate(e, l.code)} title={l.label} className={"text-base leading-none px-1 py-0.5 rounded transition-all " + (activeLang === l.code ? 'ring-2 ring-indigo-400 scale-110' : 'opacity-40 hover:opacity-80') + (translating ? ' pointer-events-none' : '')}>
+            <button key={l.code} onClick={e => translate(e, l.code)} title={l.label}
+              className={"text-sm leading-none px-1 py-0.5 rounded transition-all " + (activeLang === l.code ? 'ring-2 ring-indigo-400 scale-110' : 'opacity-40 hover:opacity-80') + (translating ? ' pointer-events-none' : '')}>
               {l.flag}
             </button>
           ))}
           {translating && <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin ml-1" />}
         </div>
 
-        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line flex-1">{preview}</p>
+        {/* Content preview */}
+        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line flex-1 line-clamp-4">{preview}</p>
 
+        {/* Variables */}
         {template.variables?.length > 0 && activeLang === template.language && (
           <div className="flex flex-wrap gap-1" onClick={e => e.stopPropagation()}>
-            {template.variables.map(v => <span key={v} className="text-xs bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-700 px-1.5 py-0.5 rounded font-mono">{'{' + v + '}'}</span>)}
+            {template.variables.map(v => <span key={v} className="text-xs bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800 px-1.5 py-0.5 rounded font-mono">{'{' + v + '}'}</span>)}
           </div>
         )}
 
+        {/* Tags with color picker */}
         {template.tags?.length > 0 && (
           <div className="flex items-center gap-1 flex-wrap" onClick={e => e.stopPropagation()}>
-            <Tag className="w-3 h-3 text-slate-300" />
+            <Tag className="w-3 h-3 text-slate-300 flex-shrink-0" />
             {template.tags.slice(0, 5).map(tag => {
-              const colorIdx = tagColors[tag]
-              const color = colorIdx !== undefined ? TAG_COLORS[colorIdx] : null
+              const colorIdx = tagColors[tag] ?? 0
+              const color = TAG_COLORS[colorIdx]
               return (
                 <div key={tag} className="relative">
                   <span
-                    onClick={() => setColorPickerTag(colorPickerTag === tag ? null : tag)}
-                    className={"text-xs px-1.5 py-0.5 rounded cursor-pointer transition-colors " + (color ? color.bg + ' ' + color.text : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400')}
-                  >{tag}</span>
+                    onClick={e => handleTagClick(e, tag)}
+                    title="Click to change color"
+                    className={"text-xs px-1.5 py-0.5 rounded cursor-pointer transition-all hover:opacity-80 select-none " + color.bg + ' ' + color.text}
+                  >
+                    {tag}
+                  </span>
                   {colorPickerTag === tag && (
-                    <div className="absolute bottom-full left-0 mb-1 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-600 p-1.5 flex gap-1 z-10">
-                      <button onClick={() => { onSetTagColor(tag, -1 as any); setColorPickerTag(null) }} className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-600 ring-1 ring-slate-300" title="Default" />
-                      {TAG_COLORS.map((c, i) => (
-                        <button key={i} onClick={() => { onSetTagColor(tag, i); setColorPickerTag(null) }} className={"w-4 h-4 rounded-full " + c.bg + " ring-1 " + c.ring} title={c.label} />
-                      ))}
+                    <div className="absolute bottom-full left-0 mb-1.5 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-600 p-2 z-50">
+                      <p className="text-xs text-slate-400 mb-1.5 flex items-center gap-1"><Palette className="w-3 h-3" />Tag color</p>
+                      <div className="flex gap-1.5">
+                        {TAG_COLORS.map((c, i) => (
+                          <button key={i} onClick={e => handleColorPick(e, tag, i)}
+                            className={"w-5 h-5 rounded-full transition-transform hover:scale-110 " + c.dot + (colorIdx === i ? ' ring-2 ring-offset-1 ring-slate-400' : '')}
+                            title={c.label}
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -295,6 +328,7 @@ function TemplateCard({ template, canEdit, pinned, tagColors, onEdit, onView, on
           </div>
         )}
 
+        {/* Actions */}
         <div className="flex items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-700" onClick={e => e.stopPropagation()}>
           <button onClick={onView} className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-600 transition-colors"><Eye className="w-3 h-3" />View</button>
           {canEdit && <button onClick={onEdit} className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-600 transition-colors"><Pencil className="w-3 h-3" />Edit</button>}
@@ -311,14 +345,14 @@ function TemplateCard({ template, canEdit, pinned, tagColors, onEdit, onView, on
       )}
     </>
   )
-}
+})
 
 function VariableModal({ template, onCopy, onClose }: { template: Template; onCopy: (c: string) => Promise<void>; onClose: () => void }) {
   const [values, setValues] = useState<Record<string, string>>(Object.fromEntries(template.variables.map(v => [v, ''])))
   const preview = fillVariables(template.content, values)
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg fade-in" onClick={e => e.stopPropagation()}>
         <div className="p-6">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Customize template</h2>
@@ -327,16 +361,16 @@ function VariableModal({ template, onCopy, onClose }: { template: Template; onCo
             {template.variables.map(v => (
               <div key={v}>
                 <label className="block text-xs font-mono text-yellow-700 dark:text-yellow-400 mb-1">{'{' + v + '}'}</label>
-                <input type="text" value={values[v]} onChange={e => setValues(p => ({ ...p, [v]: e.target.value }))} placeholder={"Enter " + v + "..."} className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input type="text" value={values[v]} onChange={e => setValues(p => ({ ...p, [v]: e.target.value }))} placeholder={"Enter " + v + "..."} className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" autoFocus />
               </div>
             ))}
           </div>
-          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 mb-5 max-h-36 overflow-y-auto">
+          <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 mb-5 max-h-40 overflow-y-auto">
             <p className="text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">Preview</p>
             <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{preview}</p>
           </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800">Cancel</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white">Cancel</button>
             <button onClick={() => onCopy(preview)} className="flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700">
               <Copy className="w-4 h-4" />Copy customized
             </button>
