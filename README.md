@@ -53,3 +53,4 @@ En Supabase → **Authentication → URL Configuration**:
 | `viewer` | Ver y copiar plantillas |
 | `editor` | Crear y editar sus plantillas |
 | `admin` | Todo + gestionar usuarios |
+# rebuild
