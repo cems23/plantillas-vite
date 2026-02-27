@@ -53,7 +53,7 @@ export function Home() {
     async function load() {
       const { data: t } = await supabase
         .from('templates')
-        .select('id,title,content,language,tags,shortcut,variables,use_count,category_id,is_active,updated_at,created_by,category:categories(id,name)')
+        .select('id,title,content,content_es,content_en,content_fr,content_de,content_it,language,tags,shortcut,variables,use_count,category_id,is_active,updated_at,created_by,category:categories(id,name)')
         .eq('is_active', true)
         .order('updated_at', { ascending: false })
       setTemplates(t || [])
@@ -253,16 +253,15 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, tagColors, i
 }) {
   const [copied, setCopied] = useState(false)
   const [showModal, setShowModal] = useState(false)
-  const [translating, setTranslating] = useState(false)
-  const [translations, setTranslations] = useState<Record<string, string>>({})
   const [activeLang, setActiveLang] = useState<string>(template.language)
   const [colorPickerTag, setColorPickerTag] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   async function handleCopy(e: React.MouseEvent) {
     e.stopPropagation()
-    const content = translations[activeLang] || template.content
-    if (template.variables?.length > 0 && activeLang === template.language) { setShowModal(true); return }
+    const langKey = 'content_' + activeLang.toLowerCase()
+    const content = template[langKey] || template.content
+    if (template.variables?.length > 0) { setShowModal(true); return }
     await doCopy(content)
   }
 
@@ -279,42 +278,12 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, tagColors, i
     }
   }
 
-  async function translate(e: React.MouseEvent, targetLang: string) {
+  function switchLang(e: React.MouseEvent, lang: string) {
     e.stopPropagation()
-    if (targetLang === template.language) { setActiveLang(targetLang); return }
-    if (translations[targetLang]) { setActiveLang(targetLang); return }
-    setTranslating(true)
-    try {
-      const langMap: Record<string, string> = { ES: 'es', EN: 'en', FR: 'fr', DE: 'de', IT: 'it', PT: 'pt' }
-      const sourceLang = langMap[template.language] || 'es'
-      const destLang = langMap[targetLang] || 'en'
-      const paragraphs = template.content.split('\n')
-      const chunks: string[] = []
-      let current = ''
-      for (const para of paragraphs) {
-        const next = current ? current + '\n' + para : para
-        if (next.length > 480) {
-          if (current) chunks.push(current)
-          current = para
-        } else {
-          current = next
-        }
-      }
-      if (current) chunks.push(current)
-      const results = await Promise.all(chunks.map(async chunk => {
-        const res = await fetch(
-          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=${sourceLang}|${destLang}`
-        )
-        const data = await res.json()
-        const t = data.responseData?.translatedText
-        if (!t || t.includes('MYMEMORY WARNING') || t.includes('QUERY LENGTH')) throw new Error('fail')
-        return t
-      }))
-      const fullTranslation = results.join('\n')
-      setTranslations(prev => ({ ...prev, [targetLang]: fullTranslation }))
-      setActiveLang(targetLang)
-    } catch { toast.error('Translation failed') }
-    setTranslating(false)
+    const contentKey = 'content_' + lang.toLowerCase()
+    if (template[contentKey] || lang.toLowerCase() === 'es') {
+      setActiveLang(lang)
+    }
   }
 
   function handleTagClick(e: React.MouseEvent, tag: string) {
@@ -328,7 +297,8 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, tagColors, i
     setColorPickerTag(null)
   }
 
-  const displayContent = translations[activeLang] || template.content
+  const langKey = 'content_' + activeLang.toLowerCase()
+  const displayContent = template[langKey] || template.content
   const preview = displayContent.length > 150 ? displayContent.substring(0, 150) + '...' : displayContent
 
   return (
@@ -355,13 +325,19 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, tagColors, i
         </div>
 
         <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-          {LANGS.map(l => (
-            <button key={l.code} onClick={e => translate(e, l.code)} title={l.label}
-              className={"text-sm leading-none px-1 py-0.5 rounded transition-all " + (activeLang === l.code ? 'ring-2 ring-indigo-400 scale-110' : 'opacity-40 hover:opacity-80') + (translating ? ' pointer-events-none' : '')}>
-              {l.flag}
-            </button>
-          ))}
-          {translating && <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin ml-1" />}
+          {LANGS.map(l => {
+            const langKey = 'content_' + l.code.toLowerCase()
+            const hasContent = !!(template[langKey])
+            const isActive = activeLang === l.code
+            return (
+              <button key={l.code} onClick={e => switchLang(e, l.code)} title={l.label}
+                disabled={!hasContent && l.code !== template.language}
+                className={"text-sm leading-none px-1 py-0.5 rounded transition-all " +
+                  (isActive ? 'ring-2 ring-indigo-400 scale-110' : hasContent ? 'opacity-80 hover:opacity-100' : 'opacity-20 cursor-not-allowed')}>
+                {l.flag}
+              </button>
+            )
+          })}
         </div>
 
         <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line flex-1">{preview}</p>

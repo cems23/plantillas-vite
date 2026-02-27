@@ -12,22 +12,35 @@ interface Props {
   categories: Category[]
 }
 
+const LANGS = [
+  { code: 'es', field: 'content_es', flag: '🇪🇸', label: 'Spanish' },
+  { code: 'en', field: 'content_en', flag: '🇬🇧', label: 'English' },
+  { code: 'fr', field: 'content_fr', flag: '🇫🇷', label: 'French' },
+  { code: 'de', field: 'content_de', flag: '🇩🇪', label: 'German' },
+  { code: 'it', field: 'content_it', flag: '🇮🇹', label: 'Italian' },
+]
+
 export function TemplateForm({ template, categories }: Props) {
   const { profile } = useAuth()
   const navigate = useNavigate()
   const isEditing = !!template
   const [saving, setSaving] = useState(false)
   const [tagInput, setTagInput] = useState('')
+  const [activeLang, setActiveLang] = useState('es')
   const [form, setForm] = useState({
     title: template?.title || '',
     content: template?.content || '',
-    language: template?.language || 'ES',
+    content_es: template?.content_es || '',
+    content_en: template?.content_en || '',
+    content_fr: template?.content_fr || '',
+    content_de: template?.content_de || '',
+    content_it: template?.content_it || '',
     category_id: template?.category_id || '',
     shortcut: template?.shortcut || '',
     tags: template?.tags || [] as string[],
   })
 
-  const detectedVars = extractVariables(form.content)
+  const detectedVars = extractVariables(form['content_' + activeLang as keyof typeof form] as string || form.content)
 
   function set(field: string, value: any) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -41,17 +54,23 @@ export function TemplateForm({ template, categories }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.title.trim() || !form.content.trim()) { toast.error('Title and content are required'); return }
+    if (!form.title.trim()) { toast.error('Title is required'); return }
+    const mainContent = form.content_es || form.content_en || form.content_fr || form.content_de || form.content_it
+    if (!mainContent) { toast.error('At least one language content is required'); return }
     setSaving(true)
 
     const payload = {
       title: form.title.trim(),
-      content: form.content.trim(),
-      language: form.language,
+      content: mainContent,
+      content_es: form.content_es || null,
+      content_en: form.content_en || null,
+      content_fr: form.content_fr || null,
+      content_de: form.content_de || null,
+      content_it: form.content_it || null,
       category_id: form.category_id || null,
       shortcut: form.shortcut.trim() || null,
       tags: form.tags,
-      updated_by: profile?.id,
+      variables: extractVariables(mainContent),
     }
 
     let error, data
@@ -65,8 +84,10 @@ export function TemplateForm({ template, categories }: Props) {
 
     if (error) { toast.error('Error saving: ' + error.message); setSaving(false); return }
     toast.success(isEditing ? 'Template updated' : 'Template created')
-    navigate(`/templates/${data.id}`)
+    navigate(\`/templates/\${data.id}\`)
   }
+
+  const activeField = ('content_' + activeLang) as keyof typeof form
 
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
@@ -77,32 +98,47 @@ export function TemplateForm({ template, categories }: Props) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">Language</label>
-          <select value={form.language} onChange={e => set('language', e.target.value)} className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="ES">🇪🇸 Spanish</option>
-            <option value="EN">🇬🇧 English</option>
-          </select>
-        </div>
-        <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1.5">Category</label>
           <select value={form.category_id} onChange={e => set('category_id', e.target.value)} className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="">No category</option>
             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Shortcut <span className="text-xs font-normal text-slate-400">(optional, e.g. /refund)</span></label>
-        <input type="text" value={form.shortcut} onChange={e => { let v = e.target.value; if (v && !v.startsWith('/')) v = '/' + v; set('shortcut', v) }} placeholder="/shortcut" className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <label className="block text-sm font-semibold text-slate-700">Content *</label>
-          <span className="text-xs text-slate-400">Use {'{variable}'} for dynamic fields</span>
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 mb-1.5">Shortcut <span className="text-xs font-normal text-slate-400">(optional, e.g. /refund)</span></label>
+          <input type="text" value={form.shortcut} onChange={e => { let v = e.target.value; if (v && !v.startsWith('/')) v = '/' + v; set('shortcut', v) }} placeholder="/shortcut" className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500" />
         </div>
-        <textarea value={form.content} onChange={e => set('content', e.target.value)} placeholder={'Hola {nombre},\n\nTu pedido {orden} ha sido...'} rows={10} className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none font-mono" required />
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-semibold text-slate-700">Content by language</label>
+          <span className="text-xs text-slate-400">Use {"{variable}"} for dynamic fields</span>
+        </div>
+        <div className="flex gap-1 mb-3">
+          {LANGS.map(l => {
+            const hasContent = !!(form['content_' + l.code as keyof typeof form] as string)
+            return (
+              <button key={l.code} type="button" onClick={() => setActiveLang(l.code)}
+                className={"flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border " +
+                  (activeLang === l.code
+                    ? 'bg-indigo-600 text-white border-indigo-600'
+                    : hasContent
+                      ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                      : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50')}>
+                {l.flag} {l.label}
+                {hasContent && activeLang !== l.code && <span className="w-1.5 h-1.5 rounded-full bg-green-500 ml-0.5" />}
+              </button>
+            )
+          })}
+        </div>
+        <textarea
+          value={form[activeField] as string}
+          onChange={e => set(activeField, e.target.value)}
+          placeholder={"Write the " + LANGS.find(l => l.code === activeLang)?.label + " version here..."}
+          rows={10}
+          className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none font-mono"
+        />
         {detectedVars.length > 0 && (
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             <span className="text-xs text-slate-400">Variables:</span>

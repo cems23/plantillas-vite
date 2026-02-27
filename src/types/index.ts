@@ -22,6 +22,11 @@ export interface Template {
   id: string
   title: string
   content: string
+  content_es: string | null
+  content_en: string | null
+  content_fr: string | null
+  content_de: string | null
+  content_it: string | null
   category_id: string | null
   language: TemplateLanguage
   tags: string[]
