@@ -85,17 +85,16 @@ export function Home() {
     })
   }, [templates, userData])
 
-  const allTemplates = useMemo(() => mergedTemplates, [mergedTemplates])
   const hiddenCount = useMemo(() => Object.values(userData).filter((d: any) => d?.hidden || d?.deleted).length, [userData])
 
   const allTags = useMemo(() => {
     const set = new Set<string>()
-    allTemplates.forEach(t => t.tags?.forEach((tag: string) => set.add(tag)))
+    mergedTemplates.forEach(t => t.tags?.forEach((tag: string) => set.add(tag)))
     return Array.from(set).sort()
-  }, [allTemplates])
+  }, [mergedTemplates])
 
   const filtered = useMemo(() => {
-    const visible = allTemplates.filter(t => {
+    const visible = mergedTemplates.filter(t => {
       const local = userData[t.id]
       if (local?.hidden || local?.deleted) return false
       if (language !== 'ALL' && t.language !== language) return false
@@ -107,11 +106,11 @@ export function Home() {
       return true
     })
     return [...visible.filter(t => isPinned(t.id)), ...visible.filter(t => !isPinned(t.id))]
-  }, [allTemplates, userData, pinnedIds, search, language, selectedTags])
+  }, [mergedTemplates, userData, pinnedIds, search, language, selectedTags])
 
   if (loading) return (
     <div className="flex items-center justify-center py-32">
-      <div className="w-6 h-6 border-2 border-[#1a1a1a] dark:border-white border-t-transparent rounded-full animate-spin" />
+      <div className="w-7 h-7 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
     </div>
   )
 
@@ -120,11 +119,13 @@ export function Home() {
       {/* Header */}
       <div className="flex items-end justify-between mb-10">
         <div>
-          <h1 className="text-4xl font-semibold text-[#1a1a1a] dark:text-white tracking-tight">Templates</h1>
-          <p className="text-[#999] dark:text-[#666] text-sm mt-1.5">
+          <h1 className="text-4xl font-extrabold tracking-tight">
+            <span className="grad-text">Templates</span>
+          </h1>
+          <p className="text-slate-400 dark:text-slate-500 text-sm mt-1.5 font-medium">
             {filtered.length} {filtered.length === 1 ? 'template' : 'templates'}
             {hiddenCount > 0 && (
-              <button onClick={unhideAll} className="ml-2 text-[#1a1a1a] dark:text-white underline underline-offset-2">
+              <button onClick={unhideAll} className="ml-2 text-blue-500 hover:text-blue-700 underline underline-offset-2 transition-colors">
                 restore {hiddenCount} hidden
               </button>
             )}
@@ -132,7 +133,7 @@ export function Home() {
         </div>
         <button
           onClick={() => navigate('/templates/new')}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[#1a1a1a] dark:bg-white text-white dark:text-[#1a1a1a] rounded-xl text-sm font-semibold hover:opacity-80 transition-opacity"
+          className="grad-btn flex items-center gap-2 px-5 py-2.5 text-white rounded-xl text-sm font-semibold shadow-lg shadow-blue-200 dark:shadow-blue-900/30"
         >
           <PlusCircle className="w-4 h-4" />New template
         </button>
@@ -140,16 +141,16 @@ export function Home() {
 
       {/* Search */}
       <div className="relative mb-4">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#bbb] dark:text-[#555]" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 dark:text-slate-600" />
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search templates..."
-          className="w-full pl-11 pr-10 py-3 bg-white dark:bg-[#1a1a1a] border border-black/8 dark:border-white/8 rounded-xl text-sm text-[#1a1a1a] dark:text-white placeholder-[#bbb] dark:placeholder-[#555] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] dark:focus:ring-white transition-all"
+          className="w-full pl-11 pr-10 py-3 bg-white dark:bg-[#0d1829] border border-blue-100 dark:border-white/6 rounded-xl text-sm text-slate-700 dark:text-slate-200 placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-all shadow-sm"
         />
         {search && (
-          <button onClick={() => setSearch('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#bbb] hover:text-[#666]">
+          <button onClick={() => setSearch('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors">
             <X className="w-4 h-4" />
           </button>
         )}
@@ -160,7 +161,7 @@ export function Home() {
         <select
           value={language}
           onChange={e => setLanguage(e.target.value)}
-          className="text-xs font-medium border border-black/8 dark:border-white/8 rounded-lg px-3 py-1.5 bg-white dark:bg-[#1a1a1a] text-[#666] dark:text-[#888] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] dark:focus:ring-white"
+          className="text-xs font-semibold border border-blue-100 dark:border-white/6 rounded-lg px-3 py-1.5 bg-white dark:bg-[#0d1829] text-slate-500 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
         >
           <option value="ALL">All languages</option>
           {LANGS.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
@@ -171,10 +172,10 @@ export function Home() {
             <button
               key={tag}
               onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
-              className={"text-xs px-3 py-1.5 rounded-lg border font-medium transition-all " +
+              className={"text-xs px-3 py-1.5 rounded-lg border font-semibold transition-all " +
                 (isSelected
-                  ? 'bg-[#1a1a1a] dark:bg-white text-white dark:text-[#1a1a1a] border-[#1a1a1a] dark:border-white'
-                  : 'bg-white dark:bg-[#1a1a1a] text-[#666] dark:text-[#888] border-black/8 dark:border-white/8 hover:border-[#1a1a1a] dark:hover:border-white')}
+                  ? 'grad-btn text-white border-transparent shadow-sm'
+                  : 'bg-white dark:bg-[#0d1829] text-slate-500 dark:text-slate-400 border-blue-100 dark:border-white/6 hover:border-blue-400 hover:text-blue-600')}
             >
               {tag}
             </button>
@@ -183,7 +184,7 @@ export function Home() {
         {(search || language !== 'ALL' || selectedTags.length > 0) && (
           <button
             onClick={() => { setSearch(''); setLanguage('ALL'); setSelectedTags([]) }}
-            className="text-xs text-[#999] hover:text-red-500 flex items-center gap-1 px-2 transition-colors"
+            className="text-xs text-slate-400 hover:text-red-500 flex items-center gap-1 px-2 transition-colors"
           >
             <X className="w-3 h-3" />Clear
           </button>
@@ -193,9 +194,11 @@ export function Home() {
       {/* Grid */}
       {filtered.length === 0 ? (
         <div className="text-center py-32">
-          <FileText className="w-10 h-10 text-[#ddd] dark:text-[#333] mx-auto mb-4" />
-          <p className="text-[#999] dark:text-[#666] text-sm">No templates found</p>
-          <button onClick={() => navigate('/templates/new')} className="text-sm text-[#1a1a1a] dark:text-white underline underline-offset-2 mt-2">
+          <div className="w-16 h-16 rounded-2xl grad-btn flex items-center justify-center mx-auto mb-5 shadow-lg shadow-blue-200 dark:shadow-blue-900/30 opacity-40">
+            <FileText className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-slate-400 dark:text-slate-600 font-medium">No templates found</p>
+          <button onClick={() => navigate('/templates/new')} className="text-sm text-blue-500 hover:text-blue-700 underline underline-offset-2 mt-2 transition-colors">
             Create the first one
           </button>
         </div>
@@ -268,24 +271,24 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, onEdit, onVi
     <>
       <div
         onClick={onView}
-        className={"bg-white dark:bg-[#1a1a1a] rounded-2xl border p-5 flex flex-col gap-4 cursor-pointer card-hover " +
+        className={"bg-white dark:bg-[#0d1829] rounded-2xl border p-5 flex flex-col gap-3.5 cursor-pointer card-hover " +
           (pinned
-            ? 'border-[#1a1a1a] dark:border-white'
-            : 'border-black/8 dark:border-white/8')}
+            ? 'border-blue-400 dark:border-blue-500 shadow-md shadow-blue-100 dark:shadow-blue-900/20'
+            : 'border-blue-50 dark:border-white/5')}
       >
         {/* Title row */}
         <div className="flex items-start gap-3" onClick={e => e.stopPropagation()}>
           <div className="flex-1 min-w-0 cursor-pointer" onClick={onView}>
             <div className="flex items-center gap-2 mb-0.5">
-              {pinned && <Pin className="w-3 h-3 text-[#1a1a1a] dark:text-white flex-shrink-0" />}
-              <h3 className="font-semibold text-[#1a1a1a] dark:text-white truncate text-[15px] leading-snug">{template.title}</h3>
+              {pinned && <Pin className="w-3 h-3 text-blue-500 flex-shrink-0" />}
+              <h3 className="font-bold text-slate-800 dark:text-white truncate text-[15px]">{template.title}</h3>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap mt-0.5">
               {template.category && (
-                <span className="text-xs text-[#999] dark:text-[#666]">{template.category?.name}</span>
+                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">{template.category?.name}</span>
               )}
               {template.shortcut && (
-                <span className="text-xs font-mono bg-[#f4f3f0] dark:bg-[#252525] text-[#666] dark:text-[#888] px-1.5 py-0.5 rounded-md flex items-center gap-1">
+                <span className="text-xs font-mono bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded-md flex items-center gap-1">
                   <Zap className="w-2.5 h-2.5" />{template.shortcut}
                 </span>
               )}
@@ -293,17 +296,17 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, onEdit, onVi
           </div>
           <button
             onClick={handleCopy}
-            className={"flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0 " +
+            className={"flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex-shrink-0 " +
               (copied
-                ? 'bg-green-500 text-white'
-                : 'bg-[#f4f3f0] dark:bg-[#252525] text-[#1a1a1a] dark:text-white hover:bg-[#1a1a1a] dark:hover:bg-white hover:text-white dark:hover:text-[#1a1a1a]')}
+                ? 'bg-teal-500 text-white shadow-sm'
+                : 'grad-btn text-white shadow-sm shadow-blue-200 dark:shadow-blue-900/30')}
           >
             {copied ? <><Check className="w-3.5 h-3.5" />Copied</> : <><Copy className="w-3.5 h-3.5" />Copy</>}
           </button>
         </div>
 
         {/* Language flags */}
-        <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
           {LANGS.map(l => {
             const key = 'content_' + l.code.toLowerCase()
             const hasContent = !!(template[key])
@@ -316,9 +319,9 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, onEdit, onVi
                 title={l.label}
                 className={"text-base leading-none p-1 rounded-lg transition-all " +
                   (isActive
-                    ? 'bg-[#f4f3f0] dark:bg-[#252525] scale-110'
+                    ? 'bg-blue-50 dark:bg-blue-900/20 scale-110 ring-2 ring-blue-200 dark:ring-blue-800'
                     : hasContent
-                      ? 'opacity-60 hover:opacity-100 hover:bg-[#f4f3f0] dark:hover:bg-[#252525]'
+                      ? 'opacity-70 hover:opacity-100 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                       : 'opacity-15 cursor-not-allowed')}
               >
                 {l.flag}
@@ -328,7 +331,7 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, onEdit, onVi
         </div>
 
         {/* Preview */}
-        <p className="text-sm text-[#666] dark:text-[#888] leading-relaxed whitespace-pre-line flex-1 line-clamp-4">
+        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-line flex-1 line-clamp-4">
           {preview}
         </p>
 
@@ -336,7 +339,7 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, onEdit, onVi
         {template.variables?.length > 0 && (
           <div className="flex flex-wrap gap-1" onClick={e => e.stopPropagation()}>
             {template.variables.map((v: string) => (
-              <span key={v} className="text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40 px-1.5 py-0.5 rounded-md font-mono">
+              <span key={v} className="text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40 px-1.5 py-0.5 rounded-md font-mono">
                 {'{' + v + '}'}
               </span>
             ))}
@@ -346,45 +349,45 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, onEdit, onVi
         {/* Tags */}
         {template.tags?.length > 0 && (
           <div className="flex items-center gap-1.5 flex-wrap" onClick={e => e.stopPropagation()}>
-            <Tag className="w-3 h-3 text-[#ccc] dark:text-[#444] flex-shrink-0" />
+            <Tag className="w-3 h-3 text-slate-200 dark:text-slate-700 flex-shrink-0" />
             {template.tags.slice(0, 5).map((tag: string) => (
-              <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-[#f4f3f0] dark:bg-[#252525] text-[#666] dark:text-[#888]">
+              <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium">
                 {tag}
               </span>
             ))}
             {template.tags.length > 5 && (
-              <span className="text-xs text-[#bbb] dark:text-[#555]">+{template.tags.length - 5}</span>
+              <span className="text-xs text-slate-300 dark:text-slate-600">+{template.tags.length - 5}</span>
             )}
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex items-center gap-1 pt-3 border-t border-black/5 dark:border-white/5" onClick={e => e.stopPropagation()}>
-          <button onClick={onView} className="flex items-center gap-1.5 text-xs text-[#999] dark:text-[#666] hover:text-[#1a1a1a] dark:hover:text-white transition-colors px-2 py-1 rounded-lg hover:bg-[#f4f3f0] dark:hover:bg-[#252525]">
+        <div className="flex items-center gap-0.5 pt-3 border-t border-blue-50 dark:border-white/5" onClick={e => e.stopPropagation()}>
+          <button onClick={onView} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-blue-600 transition-colors px-2 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/10">
             <Eye className="w-3 h-3" />View
           </button>
-          <button onClick={onEdit} className="flex items-center gap-1.5 text-xs text-[#999] dark:text-[#666] hover:text-[#1a1a1a] dark:hover:text-white transition-colors px-2 py-1 rounded-lg hover:bg-[#f4f3f0] dark:hover:bg-[#252525]">
+          <button onClick={onEdit} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-blue-600 transition-colors px-2 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/10">
             <Pencil className="w-3 h-3" />Edit
           </button>
           <button
             onClick={e => { e.stopPropagation(); onTogglePin() }}
-            className={"flex items-center gap-1.5 text-xs transition-colors px-2 py-1 rounded-lg " +
+            className={"flex items-center gap-1.5 text-xs transition-colors px-2 py-1.5 rounded-lg " +
               (pinned
-                ? 'text-[#1a1a1a] dark:text-white hover:bg-[#f4f3f0] dark:hover:bg-[#252525]'
-                : 'text-[#999] dark:text-[#666] hover:text-[#1a1a1a] dark:hover:text-white hover:bg-[#f4f3f0] dark:hover:bg-[#252525]')}
+                ? 'text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10'
+                : 'text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10')}
           >
             {pinned ? <><PinOff className="w-3 h-3" />Unpin</> : <><Pin className="w-3 h-3" />Pin</>}
           </button>
-          <button onClick={e => { e.stopPropagation(); onHide() }} className="flex items-center gap-1.5 text-xs text-[#999] dark:text-[#666] hover:text-orange-500 transition-colors px-2 py-1 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/10">
+          <button onClick={e => { e.stopPropagation(); onHide() }} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-orange-500 transition-colors px-2 py-1.5 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/10">
             <EyeOff className="w-3 h-3" />Hide
           </button>
           <div className="ml-auto">
             {confirmDelete
               ? <span className="flex items-center gap-1">
-                  <button onClick={e => { e.stopPropagation(); onDelete() }} className="text-xs text-red-600 font-semibold px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10">Confirm</button>
-                  <button onClick={e => { e.stopPropagation(); setConfirmDelete(false) }} className="text-xs text-[#999] px-2 py-1 rounded-lg hover:bg-[#f4f3f0] dark:hover:bg-[#252525]">Cancel</button>
+                  <button onClick={e => { e.stopPropagation(); onDelete() }} className="text-xs text-red-600 font-bold px-2 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10">Confirm</button>
+                  <button onClick={e => { e.stopPropagation(); setConfirmDelete(false) }} className="text-xs text-slate-400 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5">Cancel</button>
                 </span>
-              : <button onClick={e => { e.stopPropagation(); setConfirmDelete(true) }} className="flex items-center gap-1.5 text-xs text-[#999] dark:text-[#666] hover:text-red-500 transition-colors px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10">
+              : <button onClick={e => { e.stopPropagation(); setConfirmDelete(true) }} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-red-500 transition-colors px-2 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10">
                   <Trash2 className="w-3 h-3" />Delete
                 </button>
             }
@@ -405,10 +408,10 @@ function VariableModal({ template, activeContent, onCopy, onClose }: { template:
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl w-full max-w-lg border border-black/8 dark:border-white/8" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-[#0d1829] rounded-2xl shadow-2xl w-full max-w-lg border border-blue-100 dark:border-white/8" onClick={e => e.stopPropagation()}>
         <div className="p-6">
-          <h2 className="text-lg font-semibold text-[#1a1a1a] dark:text-white mb-1">Fill in variables</h2>
-          <p className="text-sm text-[#999] dark:text-[#666] mb-5">Personalize the message before copying</p>
+          <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Fill in variables</h2>
+          <p className="text-sm text-slate-400 dark:text-slate-500 mb-5">Personalize the message before copying</p>
           <div className="space-y-3 mb-5">
             {(template.variables || []).map((v: string) => (
               <div key={v}>
@@ -418,21 +421,21 @@ function VariableModal({ template, activeContent, onCopy, onClose }: { template:
                   value={values[v]}
                   onChange={e => setValues(p => ({ ...p, [v]: e.target.value }))}
                   placeholder={'Enter ' + v + '...'}
-                  className="w-full border border-black/8 dark:border-white/8 rounded-xl px-3 py-2 text-sm bg-[#f8f7f4] dark:bg-[#252525] text-[#1a1a1a] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] dark:focus:ring-white"
+                  className="w-full border border-blue-100 dark:border-white/8 rounded-xl px-3 py-2 text-sm bg-slate-50 dark:bg-[#080f1e] text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
                   autoFocus
                 />
               </div>
             ))}
           </div>
-          <div className="bg-[#f8f7f4] dark:bg-[#252525] rounded-xl p-4 mb-5 max-h-40 overflow-y-auto">
-            <p className="text-[10px] font-semibold text-[#bbb] dark:text-[#555] mb-1.5 uppercase tracking-wider">Preview</p>
-            <p className="text-sm text-[#1a1a1a] dark:text-white whitespace-pre-wrap">{preview}</p>
+          <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 mb-5 max-h-40 overflow-y-auto border border-blue-100 dark:border-blue-900/30">
+            <p className="text-[10px] font-bold text-blue-300 dark:text-blue-700 mb-1.5 uppercase tracking-wider">Preview</p>
+            <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{preview}</p>
           </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-[#999] dark:text-[#666] hover:text-[#1a1a1a] dark:hover:text-white transition-colors">Cancel</button>
+            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Cancel</button>
             <button
               onClick={() => onCopy(preview)}
-              className="flex items-center gap-2 px-5 py-2 bg-[#1a1a1a] dark:bg-white text-white dark:text-[#1a1a1a] text-sm font-semibold rounded-xl hover:opacity-80 transition-opacity"
+              className="grad-btn flex items-center gap-2 px-5 py-2 text-white text-sm font-bold rounded-xl shadow-md shadow-blue-200 dark:shadow-blue-900/30"
             >
               <Copy className="w-4 h-4" />Copy
             </button>
