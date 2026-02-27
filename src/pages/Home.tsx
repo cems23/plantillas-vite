@@ -293,8 +293,7 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, tagColors, i
       )
       const data = await res.json()
       const translated = data.responseData?.translatedText
-      const status = String(data.responseStatus)
-      if (translated && status === '200' && !translated.includes('MYMEMORY WARNING')) {
+      if (translated && !translated.includes('MYMEMORY WARNING')) {
         setTranslations(prev => ({ ...prev, [targetLang]: translated }))
         setActiveLang(targetLang)
       } else toast.error('Translation failed')
