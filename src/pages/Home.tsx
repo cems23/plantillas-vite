@@ -285,15 +285,18 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, tagColors, i
     if (translations[targetLang]) { setActiveLang(targetLang); return }
     setTranslating(true)
     try {
-      const res = await fetch('/.netlify/functions/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: template.content, targetLang }),
-      })
+      const langMap: Record<string, string> = { ES: 'es', EN: 'en', FR: 'fr', DE: 'de', IT: 'it', PT: 'pt' }
+      const sourceLang = langMap[template.language] || 'es'
+      const destLang = langMap[targetLang] || 'en'
+      const res = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(template.content)}&langpair=${sourceLang}|${destLang}`
+      )
       const data = await res.json()
-      const translated = data.translations?.[0]?.text
-      if (translated) { setTranslations(prev => ({ ...prev, [targetLang]: translated })); setActiveLang(targetLang) }
-      else toast.error('Translation failed')
+      const translated = data.responseData?.translatedText
+      if (translated && data.responseStatus === 200) {
+        setTranslations(prev => ({ ...prev, [targetLang]: translated }))
+        setActiveLang(targetLang)
+      } else toast.error('Translation failed')
     } catch { toast.error('Translation error') }
     setTranslating(false)
   }

@@ -24,10 +24,10 @@ export function AdminImport() {
 
   const processFiles = useCallback(async (fileList: FileList | File[]) => {
     const files = Array.from(fileList).filter(f => f.name.endsWith('.json'))
-    if (!files.length) { toast.error('Solo se aceptan archivos .json de Google Takeout'); return }
+    if (!files.length) { toast.error('Only .json files from Google Takeout are accepted'); return }
     const contents = await Promise.all(files.map(async f => ({ name: f.name, content: await f.text() })))
     const notes = parseKeepFiles(contents)
-    if (!notes.length) { toast.error('No se encontraron notas válidas'); return }
+    if (!notes.length) { toast.error('No valid notes found'); return }
     setParsed(notes)
     setSelected(new Set(notes.map((_, i) => i)))
     setStep('preview')
@@ -58,7 +58,7 @@ export function AdminImport() {
     await supabase.from('audit_log').insert({
       user_id: profile?.id, user_email: profile?.email,
       action: 'IMPORT', entity_type: 'template', entity_id: profile?.id,
-      entity_title: `Importación de ${imported} plantillas desde Google Keep`,
+      entity_title: `Import of ${imported} templates from Google Keep`,
     })
 
     setResult({ imported, skipped })
@@ -77,11 +77,11 @@ export function AdminImport() {
           <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-6 text-sm text-indigo-800">
             <p className="font-semibold mb-2">📥 How to export from Google Keep:</p>
             <ol className="list-decimal list-inside space-y-1 text-indigo-700">
-              <li>Ve a <strong>takeout.google.com</strong></li>
-              <li>Haz clic en <strong>"Deseleccionar todo"</strong></li>
-              <li>Activa solo <strong>"Keep"</strong></li>
-              <li>Crea y descarga la exportación</li>
-              <li>Descomprime y sube aquí los archivos <code className="bg-white px-1 rounded">.json</code></li>
+              <li>Go to <strong>takeout.google.com</strong></li>
+              <li>Click <strong>"Deselect all"</strong></li>
+              <li>Enable only <strong>"Keep"</strong></li>
+              <li>Create and download the export</li>
+              <li>Unzip and upload the <code className="bg-white px-1 rounded">.json</code> files here</li>
             </ol>
           </div>
 
@@ -138,7 +138,7 @@ export function AdminImport() {
             <div className="flex gap-2">
               <button onClick={() => { setStep('upload'); setParsed([]) }} className="px-4 py-2 text-sm text-slate-600">Back</button>
               <button onClick={handleImport} disabled={selected.size === 0} className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50">
-                Importar {selected.size} notas<ArrowRight className="w-4 h-4" />
+                Import {selected.size} notes<ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>

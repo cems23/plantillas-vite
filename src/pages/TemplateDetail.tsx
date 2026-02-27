@@ -35,22 +35,22 @@ export function TemplateDetail() {
       const el = document.createElement('textarea'); el.value = content; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el)
     }
     setCopied(true)
-    toast.success('¡Copiado!')
+    toast.success('Copied!')
     setTimeout(() => setCopied(false), 2500)
     supabase.from('templates').update({ use_count: (template!.use_count || 0) + 1 }).eq('id', id!).then()
   }
 
   async function handleDelete() {
-    if (!confirm(`¿Eliminar "${template?.title}"?`)) return
+    if (!confirm(`¿Delete "${template?.title}"?`)) return
     setDeleting(true)
     const { error } = await supabase.from('templates').update({ is_active: false }).eq('id', id!)
-    if (error) { toast.error('Error al eliminar'); setDeleting(false); return }
-    toast.success('Plantilla eliminada')
+    if (error) { toast.error('Error deleting'); setDeleting(false); return }
+    toast.success('Template deleted')
     navigate('/')
   }
 
   if (loading) return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" /></div>
-  if (!template) return <div className="text-center py-20 text-slate-500">Plantilla no encontrada</div>
+  if (!template) return <div className="text-center py-20 text-slate-500">Template not found</div>
 
   const previewContent = fillVariables(template.content, varValues)
 
@@ -65,13 +65,13 @@ export function TemplateDetail() {
               <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${template.language === 'ES' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>{template.language}</span>
               {template.category && <span className="text-xs text-slate-500">{template.category.name}</span>}
               {template.shortcut && <span className="text-xs font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{template.shortcut}</span>}
-              <span className="text-xs text-slate-400">{template.use_count || 0} usos</span>
+              <span className="text-xs text-slate-400">{template.use_count || 0} uses</span>
             </div>
           </div>
         </div>
         <div className="flex gap-2">
-          {canEdit && <button onClick={() => navigate(`/templates/${id}/edit`)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50"><Pencil className="w-4 h-4" />Editar</button>}
-          {isAdmin && <button onClick={handleDelete} disabled={deleting} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 disabled:opacity-50"><Trash2 className="w-4 h-4" />{deleting ? 'Eliminando...' : 'Eliminar'}</button>}
+          {canEdit && <button onClick={() => navigate(`/templates/${id}/edit`)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50"><Pencil className="w-4 h-4" />Edit</button>}
+          {isAdmin && <button onClick={handleDelete} disabled={deleting} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 disabled:opacity-50"><Trash2 className="w-4 h-4" />{deleting ? 'Deleting...' : 'Delete'}</button>}
         </div>
       </div>
 
@@ -81,7 +81,7 @@ export function TemplateDetail() {
             <pre className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed font-sans">{previewContent}</pre>
           </div>
           <button onClick={handleCopy} className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all ${copied ? 'bg-green-500 text-white' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}>
-            {copied ? <><Check className="w-5 h-5" />¡Copiado!</> : <><Copy className="w-5 h-5" />Copiar plantilla</>}
+            {copied ? <><Check className="w-5 h-5" />Copied!</> : <><Copy className="w-5 h-5" />Copy template</>}
           </button>
         </div>
 
@@ -101,9 +101,9 @@ export function TemplateDetail() {
           )}
 
           <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <h3 className="text-sm font-semibold text-slate-700 mb-3">Detalles</h3>
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">Details</h3>
             <dl className="space-y-2 text-sm">
-              <div><dt className="text-xs text-slate-400">Actualizada</dt><dd className="text-slate-700">{new Date(template.updated_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</dd></div>
+              <div><dt className="text-xs text-slate-400">Updated</dt><dd className="text-slate-700">{new Date(template.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</dd></div>
             </dl>
           </div>
 

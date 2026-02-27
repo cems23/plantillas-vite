@@ -25,15 +25,15 @@ export function AdminAudit() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Historial de auditoría</h1>
-        <p className="text-slate-500 text-sm mt-1">Registro de todas las acciones</p>
+        <h1 className="text-2xl font-bold text-slate-900">Audit log</h1>
+        <p className="text-slate-500 text-sm mt-1">Record of all actions</p>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50">
-              {['Cuándo', 'Usuario', 'Acción', 'Plantilla'].map(h => (
+              {['When', 'User', 'Action', 'Template'].map(h => (
                 <th key={h} className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">{h}</th>
               ))}
             </tr>
@@ -42,9 +42,9 @@ export function AdminAudit() {
             {logs.map(log => (
               <tr key={log.id} className="hover:bg-slate-50">
                 <td className="px-5 py-3 text-xs text-slate-400 whitespace-nowrap">
-                  {new Date(log.created_at).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  {new Date(log.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                 </td>
-                <td className="px-5 py-3 text-sm text-slate-600">{log.user_email?.split('@')[0] || 'Sistema'}</td>
+                <td className="px-5 py-3 text-sm text-slate-600">{log.user_email?.split('@')[0] || 'System'}</td>
                 <td className="px-5 py-3">
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${actionColors[log.action] || 'bg-slate-100 text-slate-600'}`}>{log.action}</span>
                 </td>
@@ -53,7 +53,7 @@ export function AdminAudit() {
             ))}
           </tbody>
         </table>
-        {logs.length === 0 && <div className="text-center py-12 text-slate-400">No hay registros todavía</div>}
+        {logs.length === 0 && <div className="text-center py-12 text-slate-400">No records yet</div>}
       </div>
     </div>
   )

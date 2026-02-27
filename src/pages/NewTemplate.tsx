@@ -18,8 +18,8 @@ export function NewTemplate() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Nueva plantilla</h1>
-        <p className="text-slate-500 text-sm mt-1">Crea una nueva plantilla de respuesta</p>
+        <h1 className="text-2xl font-bold text-slate-900">New template</h1>
+        <p className="text-slate-500 text-sm mt-1">Create a new response template</p>
       </div>
       <TemplateForm categories={categories} />
     </div>
