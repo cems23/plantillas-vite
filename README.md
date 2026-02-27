@@ -54,3 +54,4 @@ En Supabase → **Authentication → URL Configuration**:
 | `editor` | Crear y editar sus plantillas |
 | `admin` | Todo + gestionar usuarios |
 # rebuild
+# vercel
