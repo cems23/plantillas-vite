@@ -41,6 +41,7 @@ export function Home() {
         .from('templates')
         .select('id,title,content,content_es,content_en,content_fr,content_de,content_it,language,tags,shortcut,variables,use_count,category_id,is_active,updated_at,created_by,category:categories(id,name)')
         .eq('is_active', true)
+        .eq('owner_id', profile?.id)
         .order('updated_at', { ascending: false })
       setTemplates(t || [])
       setUserData(getUserData(profile?.id || ''))

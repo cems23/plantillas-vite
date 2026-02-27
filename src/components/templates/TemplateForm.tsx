@@ -78,7 +78,7 @@ export function TemplateForm({ template, categories }: Props) {
       const res = await supabase.from('templates').update(payload).eq('id', template!.id).select().single()
       error = res.error; data = res.data
     } else {
-      const res = await supabase.from('templates').insert({ ...payload, created_by: profile?.id }).select().single()
+      const res = await supabase.from('templates').insert({ ...payload, created_by: profile?.id, owner_id: profile?.id }).select().single()
       error = res.error; data = res.data
     }
 
