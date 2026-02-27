@@ -288,16 +288,32 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, tagColors, i
       const langMap: Record<string, string> = { ES: 'es', EN: 'en', FR: 'fr', DE: 'de', IT: 'it', PT: 'pt' }
       const sourceLang = langMap[template.language] || 'es'
       const destLang = langMap[targetLang] || 'en'
-      const res = await fetch(
-        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(template.content)}&langpair=${sourceLang}|${destLang}`
-      )
-      const data = await res.json()
-      const translated = data.responseData?.translatedText
-      if (translated && !translated.includes('MYMEMORY WARNING')) {
-        setTranslations(prev => ({ ...prev, [targetLang]: translated }))
-        setActiveLang(targetLang)
-      } else toast.error('Translation failed')
-    } catch { toast.error('Translation error') }
+      const paragraphs = template.content.split('\n')
+      const chunks: string[] = []
+      let current = ''
+      for (const para of paragraphs) {
+        const next = current ? current + '\n' + para : para
+        if (next.length > 480) {
+          if (current) chunks.push(current)
+          current = para
+        } else {
+          current = next
+        }
+      }
+      if (current) chunks.push(current)
+      const results = await Promise.all(chunks.map(async chunk => {
+        const res = await fetch(
+          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=${sourceLang}|${destLang}`
+        )
+        const data = await res.json()
+        const t = data.responseData?.translatedText
+        if (!t || t.includes('MYMEMORY WARNING') || t.includes('QUERY LENGTH')) throw new Error('fail')
+        return t
+      }))
+      const fullTranslation = results.join('\n')
+      setTranslations(prev => ({ ...prev, [targetLang]: fullTranslation }))
+      setActiveLang(targetLang)
+    } catch { toast.error('Translation failed') }
     setTranslating(false)
   }
 
