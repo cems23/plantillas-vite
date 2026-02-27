@@ -84,7 +84,7 @@ export function TemplateForm({ template, categories }: Props) {
 
     if (error) { toast.error('Error saving: ' + error.message); setSaving(false); return }
     toast.success(isEditing ? 'Template updated' : 'Template created')
-    navigate(\`/templates/\${data.id}\`)
+    navigate(`/templates/${data.id}`)
   }
 
   const activeField = ('content_' + activeLang) as keyof typeof form
