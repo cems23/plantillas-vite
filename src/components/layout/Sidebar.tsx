@@ -33,9 +33,11 @@ export function Sidebar() {
       {/* Logo */}
       <div className="h-16 flex items-center px-5 border-b border-blue-50 dark:border-white/5">
         <div className="flex items-center gap-3 flex-1">
-          <div className="w-9 h-9 rounded-xl grad-btn flex items-center justify-center flex-shrink-0 shadow-md shadow-blue-200 dark:shadow-blue-900/40">
-            <span className="text-white text-xs font-bold tracking-tight">CS</span>
-          </div>
+          <img
+            src="https://ensoywbchgvcwxxvdnvj.supabase.co/storage/v1/object/public/images/Screenshot%202026-02-27%20at%2001.17.26.png"
+            alt="CMCSHUB"
+            className="w-9 h-9 rounded-xl object-contain flex-shrink-0"
+          />
           <div>
             <p className="font-bold text-[#0d1f3c] dark:text-white text-sm tracking-tight">
               <span className="text-blue-600">CMCS</span>HUB
