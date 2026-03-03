@@ -29,19 +29,13 @@ export function Login() {
 
       <div className="w-full max-w-sm relative z-10">
         <div className="bg-white rounded-3xl shadow-2xl shadow-blue-100 p-8 border border-blue-50">
-          {/* Logo */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <img
-                src="https://ensoywbchgvcwxxvdnvj.supabase.co/storage/v1/object/public/images/generation-9cd30071-9f2b-4a32-aba4-c956c1a71ac6.png"
-                alt="CMCSHUB"
-                className="w-20 h-20 object-contain"
-              />
-            </div>
-            <h1 className="text-2xl font-extrabold text-[#0d1f3c] tracking-tight">
-              <span className="text-blue-600">CMCS</span>HUB
-            </h1>
-            <p className="text-[#8896b3] text-sm mt-1 font-semibold">Customer Support Templates</p>
+          {/* Logo only - no text since logo includes it */}
+          <div className="flex justify-center mb-8">
+            <img
+              src="https://ensoywbchgvcwxxvdnvj.supabase.co/storage/v1/object/public/images/0d947813d09a4bd396de4cd9b518b46a_3-removebg-preview.png"
+              alt="CMCSHUB"
+              className="h-24 w-auto object-contain"
+            />
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -70,7 +64,7 @@ export function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 grad-btn text-white rounded-xl text-sm font-bold disabled:opacity-60 transition-all mt-2"
+              className="w-full py-3 grad-btn text-white rounded-xl text-sm font-bold disabled:opacity-60 mt-2"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>

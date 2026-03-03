@@ -31,20 +31,12 @@ export function Sidebar() {
   return (
     <aside className="w-64 bg-white dark:bg-[#0d1829] border-r border-blue-100 dark:border-white/5 flex flex-col flex-shrink-0 shadow-sm">
       {/* Logo */}
-      <div className="h-16 flex items-center px-4 border-b border-blue-100 dark:border-white/5">
-        <div className="flex items-center gap-3 flex-1">
-          <img
-            src="https://ensoywbchgvcwxxvdnvj.supabase.co/storage/v1/object/public/images/generation-9cd30071-9f2b-4a32-aba4-c956c1a71ac6.png"
-            alt="CMCSHUB"
-            className="w-9 h-9 rounded-xl object-contain flex-shrink-0"
-          />
-          <div>
-            <p className="font-extrabold text-[#0d1f3c] dark:text-white text-sm tracking-tight">
-              <span className="text-blue-600">CMCS</span>HUB
-            </p>
-            <p className="text-xs text-[#8896b3] dark:text-slate-500 font-medium">Customer Support</p>
-          </div>
-        </div>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-blue-100 dark:border-white/5">
+        <img
+          src="https://ensoywbchgvcwxxvdnvj.supabase.co/storage/v1/object/public/images/0d947813d09a4bd396de4cd9b518b46a_3-removebg-preview.png"
+          alt="CMCSHUB"
+          className="h-10 w-auto object-contain"
+        />
         <button
           onClick={toggleDarkMode}
           className="p-1.5 rounded-lg text-[#8896b3] hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-white/5 transition-all"
