@@ -4,12 +4,11 @@ import { Save, X, Plus } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/AuthContext'
 import { extractVariables } from '../../lib/utils'
-import type { Template, Category } from '../../types'
+import type { Template } from '../../types'
 import toast from 'react-hot-toast'
 
 interface Props {
   template?: Template
-  categories: Category[]
 }
 
 const LANGS = [
@@ -20,7 +19,7 @@ const LANGS = [
   { code: 'it', field: 'content_it', flag: '🇮🇹', label: 'Italian' },
 ]
 
-export function TemplateForm({ template, categories }: Props) {
+export function TemplateForm({ template }: Props) {
   const { profile } = useAuth()
   const navigate = useNavigate()
   const isEditing = !!template
@@ -35,7 +34,7 @@ export function TemplateForm({ template, categories }: Props) {
     content_fr: template?.content_fr || '',
     content_de: template?.content_de || '',
     content_it: template?.content_it || '',
-    category_id: template?.category_id || '',
+
     shortcut: template?.shortcut || '',
     tags: template?.tags || [] as string[],
   })
@@ -67,7 +66,7 @@ export function TemplateForm({ template, categories }: Props) {
       content_fr: form.content_fr || null,
       content_de: form.content_de || null,
       content_it: form.content_it || null,
-      category_id: form.category_id || null,
+      category_id: null,
       shortcut: form.shortcut.trim() || null,
       tags: form.tags,
       variables: extractVariables(mainContent),
@@ -96,18 +95,9 @@ export function TemplateForm({ template, categories }: Props) {
         <input type="text" value={form.title} onChange={e => set('title', e.target.value)} placeholder="E.g. Refund confirmation" className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">Category</label>
-          <select value={form.category_id} onChange={e => set('category_id', e.target.value)} className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="">No category</option>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">Shortcut <span className="text-xs font-normal text-slate-400">(optional, e.g. /refund)</span></label>
-          <input type="text" value={form.shortcut} onChange={e => { let v = e.target.value; if (v && !v.startsWith('/')) v = '/' + v; set('shortcut', v) }} placeholder="/shortcut" className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        </div>
+      <div>
+        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Shortcut <span className="text-xs font-normal text-slate-400">(optional, e.g. /refund)</span></label>
+        <input type="text" value={form.shortcut} onChange={e => { let v = e.target.value; if (v && !v.startsWith('/')) v = '/' + v; set('shortcut', v) }} placeholder="/shortcut" className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500" />
       </div>
 
       <div>

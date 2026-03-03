@@ -3,24 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/AuthContext'
 import { TemplateForm } from '../components/templates/TemplateForm'
-import type { Template, Category } from '../types'
+import type { Template } from '../types'
 
 export function EditTemplate() {
   const { id } = useParams()
   const { profile } = useAuth()
   const navigate = useNavigate()
   const [template, setTemplate] = useState<Template | null>(null)
-  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (profile?.role === 'viewer') { navigate('/'); return }
     async function load() {
-      const [{ data: t }, { data: c }] = await Promise.all([
-        supabase.from('templates').select('*, category:categories(*)').eq('id', id!).single(),
-        supabase.from('categories').select('*').order('name'),
-      ])
-      setTemplate(t); setCategories(c || []); setLoading(false)
+      const { data: t } = await supabase.from('templates').select('*, category:categories(*)').eq('id', id!).single()
+      setTemplate(t); setLoading(false)
     }
     load()
   }, [id, profile])
@@ -34,7 +30,7 @@ export function EditTemplate() {
         <h1 className="text-2xl font-bold text-slate-900">Edit template</h1>
         <p className="text-slate-500 text-sm mt-1">Modify the content</p>
       </div>
-      <TemplateForm template={template} categories={categories} />
+      <TemplateForm template={template} />
     </div>
   )
 }
