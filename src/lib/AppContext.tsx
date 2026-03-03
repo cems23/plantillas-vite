@@ -1,43 +1,59 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 interface AppContextType {
   darkMode: boolean
   toggleDarkMode: () => void
-  pinnedIds: Set<string>
+  pinnedIds: string[]
   togglePin: (id: string) => void
   isPinned: (id: string) => boolean
+  favoriteIds: string[]
+  toggleFavorite: (id: string) => void
+  isFavorite: (id: string) => boolean
+  viewMode: 'grid' | 'list' | 'compact'
+  setViewMode: (mode: 'grid' | 'list' | 'compact') => void
 }
 
-const AppContext = createContext<AppContextType>({} as AppContextType)
+const AppContext = createContext<AppContextType | null>(null)
 
-export function AppProvider({ children, userId }: { children: React.ReactNode; userId?: string }) {
-  const [darkMode, setDarkMode] = useState(false)
-  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set())
+export function AppProvider({ children }: { children: ReactNode }) {
+  const [darkMode, setDarkMode] = useState(() => {
+    const s = localStorage.getItem('darkMode')
+    return s ? s === 'true' : window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
+  const [pinnedIds, setPinnedIds] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('pinnedIds') || '[]') } catch { return [] }
+  })
+  const [favoriteIds, setFavoriteIds] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('favoriteIds') || '[]') } catch { return [] }
+  })
+  const [viewMode, setViewModeState] = useState<'grid' | 'list' | 'compact'>(() => {
+    return (localStorage.getItem('viewMode') as any) || 'grid'
+  })
 
   useEffect(() => {
-    const stored = localStorage.getItem('darkMode')
-    if (stored === 'true') { setDarkMode(true); document.documentElement.classList.add('dark') }
-    const pins = localStorage.getItem('pinned_' + userId)
-    if (pins) setPinnedIds(new Set(JSON.parse(pins)))
-  }, [userId])
+    document.documentElement.classList.toggle('dark', darkMode)
+    localStorage.setItem('darkMode', String(darkMode))
+  }, [darkMode])
 
-  function toggleDarkMode() {
-    const next = !darkMode
-    setDarkMode(next)
-    localStorage.setItem('darkMode', String(next))
-    document.documentElement.classList.toggle('dark', next)
-  }
+  useEffect(() => { localStorage.setItem('pinnedIds', JSON.stringify(pinnedIds)) }, [pinnedIds])
+  useEffect(() => { localStorage.setItem('favoriteIds', JSON.stringify(favoriteIds)) }, [favoriteIds])
+  useEffect(() => { localStorage.setItem('viewMode', viewMode) }, [viewMode])
 
-  function togglePin(id: string) {
-    const next = new Set(pinnedIds)
-    next.has(id) ? next.delete(id) : next.add(id)
-    setPinnedIds(next)
-    localStorage.setItem('pinned_' + userId, JSON.stringify(Array.from(next)))
-  }
+  const togglePin = (id: string) => setPinnedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  const isPinned = (id: string) => pinnedIds.includes(id)
+  const toggleFavorite = (id: string) => setFavoriteIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  const isFavorite = (id: string) => favoriteIds.includes(id)
+  const setViewMode = (mode: 'grid' | 'list' | 'compact') => setViewModeState(mode)
 
-  function isPinned(id: string) { return pinnedIds.has(id) }
-
-  return <AppContext.Provider value={{ darkMode, toggleDarkMode, pinnedIds, togglePin, isPinned }}>{children}</AppContext.Provider>
+  return (
+    <AppContext.Provider value={{ darkMode, toggleDarkMode: () => setDarkMode(d => !d), pinnedIds, togglePin, isPinned, favoriteIds, toggleFavorite, isFavorite, viewMode, setViewMode }}>
+      {children}
+    </AppContext.Provider>
+  )
 }
 
-export function useApp() { return useContext(AppContext) }
+export function useApp() {
+  const ctx = useContext(AppContext)
+  if (!ctx) throw new Error('useApp must be used within AppProvider')
+  return ctx
+}
