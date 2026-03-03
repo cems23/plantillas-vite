@@ -120,13 +120,11 @@ export function Home() {
       {/* Header */}
       <div className="flex items-end justify-between mb-10">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight">
-            <span className="grad-text">Templates</span>
-          </h1>
-          <p className="text-slate-400 dark:text-slate-500 text-sm mt-1.5 font-medium">
+          <h1 className="text-4xl font-extrabold tracking-tight grad-text">Templates</h1>
+          <p className="text-[#4a5878] dark:text-slate-500 text-sm mt-1.5 font-semibold">
             {filtered.length} {filtered.length === 1 ? 'template' : 'templates'}
             {hiddenCount > 0 && (
-              <button onClick={unhideAll} className="ml-2 text-blue-500 hover:text-blue-700 underline underline-offset-2 transition-colors">
+              <button onClick={unhideAll} className="ml-2 text-blue-600 hover:text-blue-800 underline underline-offset-2 transition-colors">
                 restore {hiddenCount} hidden
               </button>
             )}
@@ -134,7 +132,7 @@ export function Home() {
         </div>
         <button
           onClick={() => navigate('/templates/new')}
-          className="grad-btn flex items-center gap-2 px-5 py-2.5 text-white rounded-xl text-sm font-semibold shadow-lg shadow-blue-200 dark:shadow-blue-900/30"
+          className="grad-btn flex items-center gap-2 px-5 py-2.5 text-white rounded-xl text-sm font-bold"
         >
           <PlusCircle className="w-4 h-4" />New template
         </button>
@@ -142,16 +140,16 @@ export function Home() {
 
       {/* Search */}
       <div className="relative mb-4">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 dark:text-slate-600" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8896b3] dark:text-slate-600" />
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search templates..."
-          className="w-full pl-11 pr-10 py-3 bg-white dark:bg-[#0d1829] border border-blue-100 dark:border-white/6 rounded-xl text-sm text-slate-700 dark:text-slate-200 placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-all shadow-sm"
+          className="w-full pl-11 pr-10 py-3 bg-white dark:bg-[#0d1829] border border-blue-100 dark:border-white/6 rounded-xl text-sm text-[#0d1f3c] dark:text-slate-200 placeholder-[#8896b3] dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all shadow-sm font-medium"
         />
         {search && (
-          <button onClick={() => setSearch('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors">
+          <button onClick={() => setSearch('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8896b3] hover:text-[#0d1f3c] transition-colors">
             <X className="w-4 h-4" />
           </button>
         )}
@@ -162,7 +160,7 @@ export function Home() {
         <select
           value={language}
           onChange={e => setLanguage(e.target.value)}
-          className="text-xs font-semibold border border-blue-100 dark:border-white/6 rounded-lg px-3 py-1.5 bg-white dark:bg-[#0d1829] text-slate-500 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
+          className="text-xs font-bold border border-blue-100 dark:border-white/6 rounded-lg px-3 py-1.5 bg-white dark:bg-[#0d1829] text-[#4a5878] dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
         >
           <option value="ALL">All languages</option>
           {LANGS.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
@@ -173,10 +171,10 @@ export function Home() {
             <button
               key={tag}
               onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
-              className={"text-xs px-3 py-1.5 rounded-lg border font-semibold transition-all " +
+              className={"text-xs px-3 py-1.5 rounded-lg border font-bold transition-all " +
                 (isSelected
-                  ? 'grad-btn text-white border-transparent shadow-sm'
-                  : 'bg-white dark:bg-[#0d1829] text-slate-500 dark:text-slate-400 border-blue-100 dark:border-white/6 hover:border-blue-400 hover:text-blue-600')}
+                  ? 'grad-btn text-white border-transparent'
+                  : 'bg-white dark:bg-[#0d1829] text-[#4a5878] dark:text-slate-400 border-blue-100 dark:border-white/6 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400')}
             >
               {tag}
             </button>
@@ -185,7 +183,7 @@ export function Home() {
         {(search || language !== 'ALL' || selectedTags.length > 0) && (
           <button
             onClick={() => { setSearch(''); setLanguage('ALL'); setSelectedTags([]) }}
-            className="text-xs text-slate-400 hover:text-red-500 flex items-center gap-1 px-2 transition-colors"
+            className="text-xs text-[#8896b3] hover:text-red-500 flex items-center gap-1 px-2 transition-colors font-semibold"
           >
             <X className="w-3 h-3" />Clear
           </button>
@@ -195,11 +193,11 @@ export function Home() {
       {/* Grid */}
       {filtered.length === 0 ? (
         <div className="text-center py-32">
-          <div className="w-16 h-16 rounded-2xl grad-btn flex items-center justify-center mx-auto mb-5 shadow-lg shadow-blue-200 dark:shadow-blue-900/30 opacity-40">
+          <div className="w-16 h-16 rounded-2xl grad-btn flex items-center justify-center mx-auto mb-5 opacity-40">
             <FileText className="w-8 h-8 text-white" />
           </div>
-          <p className="text-slate-400 dark:text-slate-600 font-medium">No templates found</p>
-          <button onClick={() => navigate('/templates/new')} className="text-sm text-blue-500 hover:text-blue-700 underline underline-offset-2 mt-2 transition-colors">
+          <p className="text-[#4a5878] dark:text-slate-600 font-semibold">No templates found</p>
+          <button onClick={() => navigate('/templates/new')} className="text-sm text-blue-600 hover:text-blue-800 underline underline-offset-2 mt-2 transition-colors font-semibold">
             Create the first one
           </button>
         </div>
@@ -260,9 +258,7 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, onEdit, onVi
   function switchLang(e: React.MouseEvent, langCode: string) {
     e.stopPropagation()
     const key = 'content_' + langCode.toLowerCase()
-    if (template[key] || langCode === template.language) {
-      setActiveLang(langCode)
-    }
+    if (template[key] || langCode === template.language) setActiveLang(langCode)
   }
 
   const displayContent = getContent()
@@ -275,21 +271,19 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, onEdit, onVi
         className={"bg-white dark:bg-[#0d1829] rounded-2xl border p-5 flex flex-col gap-3.5 cursor-pointer card-hover " +
           (pinned
             ? 'border-blue-400 dark:border-blue-500 shadow-md shadow-blue-100 dark:shadow-blue-900/20'
-            : 'border-blue-50 dark:border-white/5')}
+            : 'border-blue-100 dark:border-white/5')}
       >
         {/* Title row */}
         <div className="flex items-start gap-3" onClick={e => e.stopPropagation()}>
           <div className="flex-1 min-w-0 cursor-pointer" onClick={onView}>
             <div className="flex items-center gap-2 mb-0.5">
               {pinned && <Pin className="w-3 h-3 text-blue-500 flex-shrink-0" />}
-              <h3 className="font-bold text-slate-800 dark:text-white truncate text-[15px]">{template.title}</h3>
+              <h3 className="font-extrabold text-[#0d1f3c] dark:text-white truncate text-[15px]">{template.title}</h3>
             </div>
             <div className="flex items-center gap-2 flex-wrap mt-0.5">
-              {template.category && (
-                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">{template.category?.name}</span>
-              )}
+              {template.category && <span className="text-xs text-[#8896b3] dark:text-slate-500 font-semibold">{template.category?.name}</span>}
               {template.shortcut && (
-                <span className="text-xs font-mono bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded-md flex items-center gap-1">
+                <span className="text-xs font-mono bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded-md flex items-center gap-1 font-bold">
                   <Zap className="w-2.5 h-2.5" />{template.shortcut}
                 </span>
               )}
@@ -298,9 +292,7 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, onEdit, onVi
           <button
             onClick={handleCopy}
             className={"flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex-shrink-0 " +
-              (copied
-                ? 'bg-teal-500 text-white shadow-sm'
-                : 'grad-btn text-white shadow-sm shadow-blue-200 dark:shadow-blue-900/30')}
+              (copied ? 'bg-teal-500 text-white shadow-sm' : 'grad-btn text-white')}
           >
             {copied ? <><Check className="w-3.5 h-3.5" />Copied</> : <><Copy className="w-3.5 h-3.5" />Copy</>}
           </button>
@@ -313,18 +305,11 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, onEdit, onVi
             const hasContent = !!(template[key])
             const isActive = activeLang === l.code
             return (
-              <button
-                key={l.code}
-                onClick={e => switchLang(e, l.code)}
-                disabled={!hasContent && l.code !== template.language}
-                title={l.label}
+              <button key={l.code} onClick={e => switchLang(e, l.code)} disabled={!hasContent && l.code !== template.language} title={l.label}
                 className={"text-base leading-none p-1 rounded-lg transition-all " +
-                  (isActive
-                    ? 'bg-blue-50 dark:bg-blue-900/20 scale-110 ring-2 ring-blue-200 dark:ring-blue-800'
-                    : hasContent
-                      ? 'opacity-70 hover:opacity-100 hover:bg-blue-50 dark:hover:bg-blue-900/20'
-                      : 'opacity-15 cursor-not-allowed')}
-              >
+                  (isActive ? 'bg-blue-100 dark:bg-blue-900/30 scale-110 ring-2 ring-blue-300 dark:ring-blue-700'
+                    : hasContent ? 'opacity-70 hover:opacity-100 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                    : 'opacity-15 cursor-not-allowed')}>
                 {l.flag}
               </button>
             )
@@ -332,7 +317,7 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, onEdit, onVi
         </div>
 
         {/* Preview */}
-        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-line flex-1 line-clamp-4">
+        <p className="text-sm text-[#4a5878] dark:text-slate-400 leading-relaxed whitespace-pre-line flex-1 line-clamp-4 font-medium">
           {preview}
         </p>
 
@@ -340,7 +325,7 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, onEdit, onVi
         {template.variables?.length > 0 && (
           <div className="flex flex-wrap gap-1" onClick={e => e.stopPropagation()}>
             {template.variables.map((v: string) => (
-              <span key={v} className="text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/40 px-1.5 py-0.5 rounded-md font-mono">
+              <span key={v} className="text-xs bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40 px-1.5 py-0.5 rounded-md font-mono font-bold">
                 {'{' + v + '}'}
               </span>
             ))}
@@ -350,45 +335,44 @@ const TemplateCard = memo(function TemplateCard({ template, pinned, onEdit, onVi
         {/* Tags */}
         {template.tags?.length > 0 && (
           <div className="flex items-center gap-1.5 flex-wrap" onClick={e => e.stopPropagation()}>
-            <Tag className="w-3 h-3 text-slate-200 dark:text-slate-700 flex-shrink-0" />
+            <Tag className="w-3 h-3 text-blue-200 dark:text-slate-700 flex-shrink-0" />
             {template.tags.slice(0, 5).map((tag: string) => (
-              <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium">
+              <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-bold">
                 {tag}
               </span>
             ))}
-            {template.tags.length > 5 && (
-              <span className="text-xs text-slate-300 dark:text-slate-600">+{template.tags.length - 5}</span>
-            )}
+            {template.tags.length > 5 && <span className="text-xs text-[#8896b3] dark:text-slate-600 font-semibold">+{template.tags.length - 5}</span>}
           </div>
         )}
 
         {/* Actions */}
         <div className="flex items-center gap-0.5 pt-3 border-t border-blue-50 dark:border-white/5" onClick={e => e.stopPropagation()}>
-          <button onClick={onView} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-blue-600 transition-colors px-2 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/10">
-            <Eye className="w-3 h-3" />View
-          </button>
-          <button onClick={onEdit} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-blue-600 transition-colors px-2 py-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/10">
-            <Pencil className="w-3 h-3" />Edit
-          </button>
-          <button
-            onClick={e => { e.stopPropagation(); onTogglePin() }}
-            className={"flex items-center gap-1.5 text-xs transition-colors px-2 py-1.5 rounded-lg " +
-              (pinned
-                ? 'text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10'
-                : 'text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10')}
-          >
+          {[
+            { label: 'View', icon: Eye, onClick: onView, hover: 'hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10' },
+            { label: 'Edit', icon: Pencil, onClick: onEdit, hover: 'hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10' },
+          ].map(({ label, icon: Icon, onClick, hover }) => (
+            <button key={label} onClick={e => { e.stopPropagation(); onClick() }}
+              className={`flex items-center gap-1.5 text-xs text-[#8896b3] dark:text-slate-500 transition-colors px-2 py-1.5 rounded-lg font-semibold ${hover}`}>
+              <Icon className="w-3 h-3" />{label}
+            </button>
+          ))}
+          <button onClick={e => { e.stopPropagation(); onTogglePin() }}
+            className={"flex items-center gap-1.5 text-xs transition-colors px-2 py-1.5 rounded-lg font-semibold " +
+              (pinned ? 'text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10' : 'text-[#8896b3] dark:text-slate-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10')}>
             {pinned ? <><PinOff className="w-3 h-3" />Unpin</> : <><Pin className="w-3 h-3" />Pin</>}
           </button>
-          <button onClick={e => { e.stopPropagation(); onHide() }} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-orange-500 transition-colors px-2 py-1.5 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/10">
+          <button onClick={e => { e.stopPropagation(); onHide() }}
+            className="flex items-center gap-1.5 text-xs text-[#8896b3] dark:text-slate-500 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors px-2 py-1.5 rounded-lg font-semibold">
             <EyeOff className="w-3 h-3" />Hide
           </button>
           <div className="ml-auto">
             {confirmDelete
               ? <span className="flex items-center gap-1">
                   <button onClick={e => { e.stopPropagation(); onDelete() }} className="text-xs text-red-600 font-bold px-2 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10">Confirm</button>
-                  <button onClick={e => { e.stopPropagation(); setConfirmDelete(false) }} className="text-xs text-slate-400 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5">Cancel</button>
+                  <button onClick={e => { e.stopPropagation(); setConfirmDelete(false) }} className="text-xs text-[#8896b3] px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 font-semibold">Cancel</button>
                 </span>
-              : <button onClick={e => { e.stopPropagation(); setConfirmDelete(true) }} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-red-500 transition-colors px-2 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10">
+              : <button onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
+                  className="flex items-center gap-1.5 text-xs text-[#8896b3] dark:text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors px-2 py-1.5 rounded-lg font-semibold">
                   <Trash2 className="w-3 h-3" />Delete
                 </button>
             }
@@ -411,33 +395,26 @@ function VariableModal({ template, activeContent, onCopy, onClose }: { template:
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white dark:bg-[#0d1829] rounded-2xl shadow-2xl w-full max-w-lg border border-blue-100 dark:border-white/8" onClick={e => e.stopPropagation()}>
         <div className="p-6">
-          <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-1">Fill in variables</h2>
-          <p className="text-sm text-slate-400 dark:text-slate-500 mb-5">Personalize the message before copying</p>
+          <h2 className="text-lg font-extrabold text-[#0d1f3c] dark:text-white mb-1">Fill in variables</h2>
+          <p className="text-sm text-[#4a5878] dark:text-slate-500 mb-5 font-medium">Personalize the message before copying</p>
           <div className="space-y-3 mb-5">
             {(template.variables || []).map((v: string) => (
               <div key={v}>
-                <label className="block text-xs font-mono text-amber-600 dark:text-amber-400 mb-1">{'{' + v + '}'}</label>
-                <input
-                  type="text"
-                  value={values[v]}
-                  onChange={e => setValues(p => ({ ...p, [v]: e.target.value }))}
+                <label className="block text-xs font-mono text-amber-600 dark:text-amber-400 mb-1 font-bold">{'{' + v + '}'}</label>
+                <input type="text" value={values[v]} onChange={e => setValues(p => ({ ...p, [v]: e.target.value }))}
                   placeholder={'Enter ' + v + '...'}
-                  className="w-full border border-blue-100 dark:border-white/8 rounded-xl px-3 py-2 text-sm bg-slate-50 dark:bg-[#080f1e] text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  autoFocus
-                />
+                  className="w-full border border-blue-100 dark:border-white/8 rounded-xl px-3 py-2 text-sm bg-blue-50/50 dark:bg-[#080f1e] text-[#0d1f3c] dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 font-medium"
+                  autoFocus />
               </div>
             ))}
           </div>
-          <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-4 mb-5 max-h-40 overflow-y-auto border border-blue-100 dark:border-blue-900/30">
-            <p className="text-[10px] font-bold text-blue-300 dark:text-blue-700 mb-1.5 uppercase tracking-wider">Preview</p>
-            <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{preview}</p>
+          <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4 mb-5 max-h-40 overflow-y-auto border border-blue-100 dark:border-blue-900/30">
+            <p className="text-[10px] font-extrabold text-blue-400 dark:text-blue-700 mb-1.5 uppercase tracking-wider">Preview</p>
+            <p className="text-sm text-[#0d1f3c] dark:text-slate-200 whitespace-pre-wrap font-medium">{preview}</p>
           </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Cancel</button>
-            <button
-              onClick={() => onCopy(preview)}
-              className="grad-btn flex items-center gap-2 px-5 py-2 text-white text-sm font-bold rounded-xl shadow-md shadow-blue-200 dark:shadow-blue-900/30"
-            >
+            <button onClick={onClose} className="px-4 py-2 text-sm text-[#8896b3] hover:text-[#0d1f3c] dark:hover:text-white transition-colors font-semibold">Cancel</button>
+            <button onClick={() => onCopy(preview)} className="grad-btn flex items-center gap-2 px-5 py-2 text-white text-sm font-bold rounded-xl">
               <Copy className="w-4 h-4" />Copy
             </button>
           </div>

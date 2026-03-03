@@ -8,15 +8,15 @@
 
 :root {
   --blue: #1a6bff;
+  --blue-dark: #0050e6;
   --teal: #00c6a7;
   --navy: #0d1f3c;
-  --grad: linear-gradient(135deg, #1a6bff 0%, #00c6a7 100%);
-  --grad-soft: linear-gradient(135deg, #e8f0ff 0%, #e0faf5 100%);
-  --surface: #f5f7fc;
+  --surface: #f0f4ff;
   --card: #ffffff;
-  --border: rgba(26,107,255,0.1);
+  --border: rgba(26,107,255,0.12);
   --text: #0d1f3c;
-  --muted: #7a8aaa;
+  --text-muted: #4a5878;
+  --text-faint: #8896b3;
 }
 
 .dark {
@@ -24,7 +24,8 @@
   --card: #0d1829;
   --border: rgba(255,255,255,0.06);
   --text: #e8edf8;
-  --muted: #4a5878;
+  --text-muted: #7a8aaa;
+  --text-faint: #3a4a68;
 }
 
 body {
@@ -36,16 +37,12 @@ body {
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(26,107,255,0.2); border-radius: 999px; }
+::-webkit-scrollbar-thumb { background: rgba(26,107,255,0.25); border-radius: 999px; }
 .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-@keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
 }
 
 .fade-in { animation: fadeUp 0.25s ease-out; }
@@ -55,22 +52,27 @@ body {
 }
 .card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(26,107,255,0.12);
-  border-color: rgba(26,107,255,0.3) !important;
+  box-shadow: 0 8px 28px rgba(26,107,255,0.14);
+  border-color: rgba(26,107,255,0.35) !important;
 }
 
 .grad-text {
-  background: var(--grad);
+  background: linear-gradient(135deg, #1a6bff 0%, #00c6a7 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .grad-btn {
-  background: var(--grad);
-  transition: opacity 0.2s ease, transform 0.1s ease;
+  background: linear-gradient(135deg, #1a6bff 0%, #00b896 100%);
+  transition: opacity 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 14px rgba(26,107,255,0.35);
 }
-.grad-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.grad-btn:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(26,107,255,0.45);
+}
 .grad-btn:active { transform: translateY(0); }
 
 .card-grid > *:nth-child(1) { animation: fadeUp 0.25s ease-out 0.03s both; }
