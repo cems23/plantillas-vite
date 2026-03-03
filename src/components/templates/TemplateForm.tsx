@@ -58,13 +58,27 @@ export function TemplateForm({ template }: Props) {
     if (!mainContent) { toast.error('At least one language content is required'); return }
     setSaving(true)
 
-    // Only update language fields that have content, preserve existing ones
+    // When editing, only save the active language tab - never overwrite others
     const langPayload: Record<string, string | null> = {}
-    if (form.content_es || template?.content_es) langPayload.content_es = form.content_es || template?.content_es || null
-    if (form.content_en || template?.content_en) langPayload.content_en = form.content_en || template?.content_en || null
-    if (form.content_fr || template?.content_fr) langPayload.content_fr = form.content_fr || template?.content_fr || null
-    if (form.content_de || template?.content_de) langPayload.content_de = form.content_de || template?.content_de || null
-    if (form.content_it || template?.content_it) langPayload.content_it = form.content_it || template?.content_it || null
+    if (isEditing) {
+      // Only update the language that the user is currently editing
+      const activeField = 'content_' + activeLang
+      langPayload[activeField] = (form as any)[activeField] || null
+      // Preserve all other language fields from original template
+      for (const l of ['es','en','fr','de','it']) {
+        const field = 'content_' + l
+        if (field !== activeField) {
+          langPayload[field] = (template as any)?.[field] ?? null
+        }
+      }
+    } else {
+      // When creating, save all filled languages
+      langPayload.content_es = form.content_es || null
+      langPayload.content_en = form.content_en || null
+      langPayload.content_fr = form.content_fr || null
+      langPayload.content_de = form.content_de || null
+      langPayload.content_it = form.content_it || null
+    }
 
     const payload = {
       title: form.title.trim(),
