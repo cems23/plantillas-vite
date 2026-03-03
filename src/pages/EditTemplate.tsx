@@ -15,7 +15,7 @@ export function EditTemplate() {
   useEffect(() => {
     if (profile?.role === 'viewer') { navigate('/'); return }
     async function load() {
-      const { data: t } = await supabase.from('templates').select('*, category:categories(*)').eq('id', id!).single()
+      const { data: t } = await supabase.from('templates').select('id,title,content,content_es,content_en,content_fr,content_de,content_it,language,tags,shortcut,variables,use_count,category_id,is_active,updated_at,created_by').eq('id', id!).single()
       setTemplate(t); setLoading(false)
     }
     load()

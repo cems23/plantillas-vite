@@ -58,14 +58,18 @@ export function TemplateForm({ template }: Props) {
     if (!mainContent) { toast.error('At least one language content is required'); return }
     setSaving(true)
 
+    // Only update language fields that have content, preserve existing ones
+    const langPayload: Record<string, string | null> = {}
+    if (form.content_es || template?.content_es) langPayload.content_es = form.content_es || template?.content_es || null
+    if (form.content_en || template?.content_en) langPayload.content_en = form.content_en || template?.content_en || null
+    if (form.content_fr || template?.content_fr) langPayload.content_fr = form.content_fr || template?.content_fr || null
+    if (form.content_de || template?.content_de) langPayload.content_de = form.content_de || template?.content_de || null
+    if (form.content_it || template?.content_it) langPayload.content_it = form.content_it || template?.content_it || null
+
     const payload = {
       title: form.title.trim(),
       content: mainContent,
-      content_es: form.content_es || null,
-      content_en: form.content_en || null,
-      content_fr: form.content_fr || null,
-      content_de: form.content_de || null,
-      content_it: form.content_it || null,
+      ...langPayload,
       category_id: null,
       shortcut: form.shortcut.trim() || null,
       tags: form.tags,
