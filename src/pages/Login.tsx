@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { BookOpen } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
@@ -23,30 +22,61 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen bg-[#f0f4ff] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background blobs */}
+      <div className="absolute top-[-10%] left-[-5%] w-96 h-96 rounded-full opacity-20" style={{background: 'radial-gradient(circle, #1a6bff, transparent)'}} />
+      <div className="absolute bottom-[-10%] right-[-5%] w-96 h-96 rounded-full opacity-20" style={{background: 'radial-gradient(circle, #00c6a7, transparent)'}} />
+
+      <div className="w-full max-w-sm relative z-10">
+        <div className="bg-white rounded-3xl shadow-2xl shadow-blue-100 p-8 border border-blue-50">
+          {/* Logo */}
           <div className="text-center mb-8">
-            <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-200">
-              <BookOpen className="w-7 h-7 text-white" />
+            <div className="flex items-center justify-center mb-4">
+              <img
+                src="https://ensoywbchgvcwxxvdnvj.supabase.co/storage/v1/object/public/images/Screenshot%202026-02-27%20at%2001.17.26.png"
+                alt="CMCSHUB"
+                className="w-20 h-20 object-contain"
+              />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">CMCSHUB</h1>
-            <p className="text-slate-500 text-sm mt-1">Customer Support Templates</p>
+            <h1 className="text-2xl font-extrabold text-[#0d1f3c] tracking-tight">
+              <span className="text-blue-600">CMCS</span>HUB
+            </h1>
+            <p className="text-[#8896b3] text-sm mt-1 font-semibold">Customer Support Templates</p>
           </div>
+
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@company.com" className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <label className="block text-sm font-bold text-[#0d1f3c] mb-1.5">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                placeholder="you@cmcshub.com"
+                className="w-full border border-blue-100 rounded-xl px-4 py-2.5 text-sm text-[#0d1f3c] placeholder-[#8896b3] focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50/40 font-medium"
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <label className="block text-sm font-bold text-[#0d1f3c] mb-1.5">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="w-full border border-blue-100 rounded-xl px-4 py-2.5 text-sm text-[#0d1f3c] placeholder-[#8896b3] focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50/40 font-medium"
+              />
             </div>
-            <button type="submit" disabled={loading} className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 transition-colors">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 grad-btn text-white rounded-xl text-sm font-bold disabled:opacity-60 transition-all mt-2"
+            >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
-          <p className="text-center text-xs text-slate-400 mt-6">Team members only</p>
+
+          <p className="text-center text-xs text-[#8896b3] mt-6 font-semibold">Team members only</p>
         </div>
       </div>
     </div>

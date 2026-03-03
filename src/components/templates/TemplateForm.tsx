@@ -113,15 +113,15 @@ export function TemplateForm({ template }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-[#0d1829] rounded-xl border border-slate-200 dark:border-white/8 p-6 space-y-5">
       <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Title *</label>
-        <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="E.g. Refund confirmation" className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" required />
+        <label className="block text-sm font-semibold text-[#0d1f3c] dark:text-white mb-1.5">Title *</label>
+        <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="E.g. Refund confirmation" className="w-full border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-[#0d1829] text-[#0d1f3c] dark:text-white placeholder-slate-400 dark:placeholder-slate-600" required />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Shortcut <span className="text-xs font-normal text-slate-400">(optional, e.g. /refund)</span></label>
-        <input type="text" value={shortcut} onChange={e => { let v = e.target.value; if (v && !v.startsWith('/')) v = '/' + v; setShortcut(v) }} placeholder="/shortcut" className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        <label className="block text-sm font-semibold text-[#0d1f3c] dark:text-white mb-1.5">Shortcut <span className="text-xs font-normal text-slate-400">(optional, e.g. /refund)</span></label>
+        <input type="text" value={shortcut} onChange={e => { let v = e.target.value; if (v && !v.startsWith('/')) v = '/' + v; setShortcut(v) }} placeholder="/shortcut" className="w-full border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-[#0d1829] text-[#0d1f3c] dark:text-white placeholder-slate-400 dark:placeholder-slate-600" />
       </div>
 
       <div>
@@ -159,7 +159,7 @@ export function TemplateForm({ template }: Props) {
           onChange={e => setContents(prev => ({ ...prev, [activeLang]: e.target.value }))}
           placeholder={"Write the " + LANGS.find(l => l.code === activeLang)?.label + " version here..."}
           rows={10}
-          className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none font-mono"
+          className="w-full border border-slate-300 dark:border-slate-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none font-mono bg-white dark:bg-[#0d1829] text-[#0d1f3c] dark:text-white placeholder-slate-400 dark:placeholder-slate-600"
         />
         {detectedVars.length > 0 && (
           <div className="mt-2 flex items-center gap-2 flex-wrap">
@@ -170,7 +170,7 @@ export function TemplateForm({ template }: Props) {
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tags</label>
+        <label className="block text-sm font-semibold text-[#0d1f3c] dark:text-white mb-1.5">Tags</label>
         <div className="flex gap-1.5 mb-2 flex-wrap">
           {tags.map(tag => (
             <span key={tag} className="flex items-center gap-1 text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
@@ -179,7 +179,7 @@ export function TemplateForm({ template }: Props) {
           ))}
         </div>
         <div className="flex gap-2">
-          <input type="text" value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag() } }} placeholder="Add tag... (Enter)" className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          <input type="text" value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag() } }} placeholder="Add tag... (Enter)" className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-[#0d1829] text-[#0d1f3c] dark:text-white placeholder-slate-400 dark:placeholder-slate-600" />
           <button type="button" onClick={addTag} className="px-3 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50"><Plus className="w-4 h-4" /></button>
         </div>
       </div>
