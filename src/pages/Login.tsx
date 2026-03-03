@@ -33,7 +33,7 @@ export function Login() {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
               <img
-                src="https://ensoywbchgvcwxxvdnvj.supabase.co/storage/v1/object/public/images/Screenshot%202026-02-27%20at%2001.17.26.png"
+                src="https://ensoywbchgvcwxxvdnvj.supabase.co/storage/v1/object/public/images/generation-9cd30071-9f2b-4a32-aba4-c956c1a71ac6.png"
                 alt="CMCSHUB"
                 className="w-20 h-20 object-contain"
               />

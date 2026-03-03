@@ -34,7 +34,7 @@ export function Sidebar() {
       <div className="h-16 flex items-center px-4 border-b border-blue-100 dark:border-white/5">
         <div className="flex items-center gap-3 flex-1">
           <img
-            src="https://ensoywbchgvcwxxvdnvj.supabase.co/storage/v1/object/public/images/Screenshot%202026-02-27%20at%2001.17.26.png"
+            src="https://ensoywbchgvcwxxvdnvj.supabase.co/storage/v1/object/public/images/generation-9cd30071-9f2b-4a32-aba4-c956c1a71ac6.png"
             alt="CMCSHUB"
             className="w-9 h-9 rounded-xl object-contain flex-shrink-0"
           />
